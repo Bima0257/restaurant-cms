@@ -6,7 +6,7 @@ node_modules
 .netlify
 .wrangler
 /.svelte-kit
-/build
+# /build  # removed - needed for CI/CD scp-action
 
 # OS
 .DS_Store
