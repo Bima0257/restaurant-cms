@@ -1,7 +1,7 @@
-import { PUBLIC_API_URL } from "$env/static/public";
+import * as publicEnv from "$env/static/public";
 import { auth } from "$lib/stores/auth";
 
-const API_BASE = PUBLIC_API_URL || "http://localhost:8000/api";
+const API_BASE = (publicEnv as Record<string, string>).PUBLIC_API_URL || "http://localhost:8000/api";
 
 let isRefreshing = false;
 let refreshQueue: Array<{
