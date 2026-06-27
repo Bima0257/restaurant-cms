@@ -3,7 +3,9 @@
   import { goto } from "$app/navigation";
   import { page } from "$app/stores";
   import { onMount } from "svelte";
-  import { PUBLIC_RECAPTCHA_SITE_KEY } from "$env/static/public";
+  import * as publicEnv from "$env/static/public";
+
+  let PUBLIC_RECAPTCHA_SITE_KEY = $derived((publicEnv as Record<string, string>).PUBLIC_RECAPTCHA_SITE_KEY || "");
   import { toast } from "svelte-sonner";
   import { api } from "$lib/api";
   import { auth } from "$lib/stores/auth";
