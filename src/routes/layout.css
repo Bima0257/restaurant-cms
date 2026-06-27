@@ -1,0 +1,106 @@
+@import "tailwindcss";
+@plugin "@tailwindcss/forms";
+
+@theme {
+  --color-flame-orange: #E8640C;
+  --color-flame-hover: #C4530A;
+  --color-surface: #131313;
+  --color-surface-bright: #3a3939;
+  --color-surface-container-lowest: #0e0e0e;
+  --color-surface-charcoal: #1C1C1C;
+  --color-surface-card: #222222;
+  --color-on-surface: #e5e2e1;
+  --color-ivory-white: #F5F5F0;
+  --color-muted-gray: #A0A0A0;
+  --color-deep-border: #2E2E2E;
+
+  --font-headline-h2: "Playfair Display", serif;
+  --font-headline-h1: "Playfair Display", serif;
+  --font-headline-h3: "Playfair Display", serif;
+  --font-hero-lg: "Playfair Display", serif;
+  --font-hero-mobile: "Playfair Display", serif;
+  --font-body-lg: "Inter", sans-serif;
+  --font-body-md: "Inter", sans-serif;
+  --font-label-caps: "Montserrat", sans-serif;
+  --font-label-price: "Montserrat", sans-serif;
+
+  --font-size-headline-h2: 28px;
+  --font-size-headline-h1: 36px;
+  --font-size-headline-h3: 20px;
+  --font-size-hero-lg: 64px;
+  --font-size-hero-mobile: 40px;
+  --font-size-body-lg: 18px;
+  --font-size-body-md: 16px;
+  --font-size-label-caps: 14px;
+  --font-size-label-price: 18px;
+
+  --spacing-gutter: 1.5rem;
+  --spacing-grid-max-width: 1280px;
+  --spacing-component-gap: 1rem;
+  --spacing-section-gap: 6rem;
+}
+
+@utility orange-glow {
+  box-shadow: 0 10px 30px rgba(232, 100, 12, 0.3);
+}
+
+@utility food-shadow {
+  filter: drop-shadow(0 20px 40px rgba(0, 0, 0, 0.8));
+}
+
+@utility signature-bracket {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  font-family: "Playfair Display", serif;
+  font-weight: 700;
+  font-size: 2rem;
+  color: #F5F5F0;
+}
+@utility signature-bracket-before {
+  content: "⌊";
+  color: #E8640C;
+  font-size: 2.5rem;
+}
+@utility signature-bracket-after {
+  content: "⌉";
+  color: #E8640C;
+  font-size: 2.5rem;
+}
+
+body {
+  background-color: #111111;
+  color: #f5f5f0;
+  overflow-x: hidden;
+}
+
+.stone-texture {
+  background-image: url("https://www.transparenttextures.com/patterns/dark-stone.png");
+  background-attachment: fixed;
+}
+
+@keyframes floating {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-15px); }
+}
+.floating-anim {
+  animation: floating 3s ease-in-out infinite;
+}
+
+.ticket-notch {
+  position: relative;
+  background: #ffffff;
+}
+.ticket-notch::before,
+.ticket-notch::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  width: 30px;
+  height: 30px;
+  background: #111111;
+  border-radius: 50%;
+  transform: translateY(-50%);
+}
+.ticket-notch::before { left: -15px; }
+.ticket-notch::after { right: -15px; }

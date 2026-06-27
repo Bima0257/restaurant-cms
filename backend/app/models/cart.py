@@ -1,0 +1,20 @@
+from datetime import datetime
+
+from sqlalchemy import DateTime, ForeignKey, Integer, String, Text, func
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+from app.database import Base
+
+
+class Cart(Base):
+    __tablename__ = "carts"
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
+    menu_item_id: Mapped[int] = mapped_column(ForeignKey("menu_items.id"), nullable=False)
+    qty: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
+    notes: Mapped[str] = mapped_column(Text, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+
+    user = relationship("User", back_populates="cart_items")
+    menu_item = relationship("MenuItem", back_populates="cart_items")

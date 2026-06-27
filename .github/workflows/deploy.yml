@@ -1,0 +1,105 @@
+name: Deploy to VPS
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: 20
+  PYTHON_VERSION: "3.11"
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # ─── Frontend Build ──────────────────────────────────
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - name: Install frontend dependencies
+        run: npm ci
+
+      - name: Build frontend (static)
+        run: npm run build
+        env:
+          PUBLIC_API_URL: ${{ vars.PUBLIC_API_URL || secrets.PUBLIC_API_URL }}
+
+      # ─── Backend Setup (validation) ──────────────────────
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install backend dependencies
+        working-directory: backend
+        run: pip install -r requirements.txt
+
+      # ─── Deploy via SSH ──────────────────────────────────
+      - name: Deploy to VPS
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          source: |
+            build/
+            backend/
+            deploy/
+          target: /opt/restaurant-cms
+          strip_components: 0
+          rm: false
+          overwrite: true
+
+      - name: Copy frontend build to web root
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            set -e
+
+            # Copy to web root
+            rsync -a --delete /opt/restaurant-cms/build/ /var/www/restaurant-cms/frontend/
+
+            # Copy .env file if missing
+            if [ ! -f /opt/restaurant-cms/.env ]; then
+              cat > /opt/restaurant-cms/.env << 'EOF'
+            DATABASE_URL=${{ secrets.DATABASE_URL }}
+            SECRET_KEY=${{ secrets.BACKEND_SECRET_KEY }}
+            ALGORITHM=HS256
+            ACCESS_TOKEN_EXPIRE_MINUTES=1440
+            CORS_ORIGINS=${{ secrets.CORS_ORIGINS }}
+            RESEND_API_KEY=${{ secrets.RESEND_API_KEY }}
+            RECAPTCHA_SITE_KEY=${{ secrets.RECAPTCHA_SITE_KEY }}
+            RECAPTCHA_SECRET_KEY=${{ secrets.RECAPTCHA_SECRET_KEY }}
+            EOF
+              chown restaurant-app:restaurant-app /opt/restaurant-cms/.env
+              chmod 600 /opt/restaurant-cms/.env
+            fi
+
+            # Install/update Python deps
+            /opt/restaurant-cms/venv/bin/pip install -r /opt/restaurant-cms/backend/requirements.txt --quiet
+
+            # Restart backend
+            systemctl daemon-reload
+            systemctl enable restaurant-backend 2>/dev/null || true
+            systemctl restart restaurant-backend || echo "Backend service not yet configured — run setup-vps.sh first"
+
+            # Reload Nginx
+            nginx -t && systemctl reload nginx
+
+      # ─── Health Check ────────────────────────────────────
+      - name: Health check
+        run: |
+          sleep 5
+          curl -sSf --max-time 10 "${{ vars.PUBLIC_API_URL || secrets.PUBLIC_API_URL }}/health" || echo "Warning: health check failed (may be expected if setup not complete)"
