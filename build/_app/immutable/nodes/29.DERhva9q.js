@@ -1,0 +1,1 @@
+import{ot as e,r as t,st as n}from"../chunks/kzninLR2.js";import{t as r}from"../chunks/D10BPHDn.js";import"../chunks/xihTtKlq.js";import"../chunks/gwcMy6xL.js";function i(i,a){n(a,!0),t(()=>{r(`/staff/orders`)}),e()}export{i as component};
