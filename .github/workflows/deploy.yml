@@ -78,9 +78,17 @@ jobs:
           user = os.environ["VPS_USER"]
           password = os.environ["VPS_PASSWORD"]
           port = int(os.environ.get("VPS_PORT", "22"))
+          ws = os.environ.get("GITHUB_WORKSPACE", "/github/workspace")
 
-          print(f"Connecting to {user}@{host}:{port}...")
-          print(f"Password length: {len(password)}")
+          print(f"Workspace: {ws}")
+          print(f"Target: {user}@{host}:{port}")
+
+          # Verify local dirs exist
+          for d in ["build", "backend", "deploy"]:
+              p = os.path.join(ws, d)
+              exists = os.path.isdir(p)
+              count = sum(1 for _ in (os.walk(p) if exists else []))
+              print(f"  {p} -> exists={exists}, entries={count}")
 
           client = paramiko.SSHClient()
           client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
@@ -121,7 +129,11 @@ jobs:
 
           def upload_dir(local_dir, remote_dir):
               print(f"\n=== Uploading {local_dir} -> {remote_dir} ===")
+              if not os.path.isdir(local_dir):
+                  print(f"  SKIP: source dir not found: {local_dir}")
+                  return
               ensure_remote_dir(remote_dir)
+              file_count = 0
               for root, dirs, files in os.walk(local_dir):
                   rel = os.path.relpath(root, local_dir)
                   remote_sub = os.path.join(remote_dir, rel).replace("\\", "/")
@@ -132,13 +144,14 @@ jobs:
                       remote_file = os.path.join(remote_sub, f).replace("\\", "/")
                       try:
                           sftp.put(local_file, remote_file)
-                          print(f"  OK: {f}")
+                          file_count += 1
                       except Exception as e:
                           print(f"  FAIL: {f} - {e}")
+              print(f"  Uploaded {file_count} files")
 
-          upload_dir("/github/workspace/build", "/opt/restaurant-cms/build")
-          upload_dir("/github/workspace/backend", "/opt/restaurant-cms/backend")
-          upload_dir("/github/workspace/deploy", "/opt/restaurant-cms/deploy")
+          upload_dir(os.path.join(ws, "build"), "/opt/restaurant-cms/build")
+          upload_dir(os.path.join(ws, "backend"), "/opt/restaurant-cms/backend")
+          upload_dir(os.path.join(ws, "deploy"), "/opt/restaurant-cms/deploy")
 
           print("\n=== Verifying ===")
           stdin, stdout, stderr = client.exec_command("ls -la /opt/restaurant-cms/")
