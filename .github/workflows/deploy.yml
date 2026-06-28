@@ -159,7 +159,11 @@ jobs:
           script: |
             set -e
 
+            # Ensure restaurant-app user exists
+            id -u restaurant-app &>/dev/null || useradd -m -s /bin/bash restaurant-app
+
             # Copy to web root
+            mkdir -p /var/www/restaurant-cms/frontend
             rsync -a --delete /opt/restaurant-cms/build/ /var/www/restaurant-cms/frontend/
 
             # Copy .env file if missing
@@ -178,16 +182,24 @@ jobs:
               chmod 600 /opt/restaurant-cms/.env
             fi
 
+            # Setup Python venv if not exists
+            if [ ! -f /opt/restaurant-cms/venv/bin/pip ]; then
+              python3 -m venv /opt/restaurant-cms/venv
+            fi
+
             # Install/update Python deps
             /opt/restaurant-cms/venv/bin/pip install -r /opt/restaurant-cms/backend/requirements.txt --quiet
 
-            # Restart backend
-            systemctl daemon-reload
-            systemctl enable restaurant-backend 2>/dev/null || true
-            systemctl restart restaurant-backend || echo "Backend service not yet configured — run setup-vps.sh first"
+            # Restart backend (skip if systemd not available)
+            if command -v systemctl &>/dev/null; then
+              systemctl daemon-reload 2>/dev/null || true
+              systemctl restart restaurant-backend 2>/dev/null || echo "Backend service not yet configured"
+            fi
 
-            # Reload Nginx
-            nginx -t && systemctl reload nginx
+            # Reload Nginx (skip if not installed)
+            if command -v nginx &>/dev/null; then
+              nginx -t && nginx -s reload || true
+            fi
 
       # ─── Health Check ────────────────────────────────────
       - name: Health check
