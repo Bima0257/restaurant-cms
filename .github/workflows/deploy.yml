@@ -68,6 +68,7 @@ jobs:
           VPS_HOST: ${{ secrets.VPS_HOST }}
           VPS_USER: ${{ secrets.VPS_USER }}
         run: |
+          mkdir -p ~/.ssh
           cat > ~/.ssh/config << 'SSHCONF'
           Host vps
             HostName VPS_HOST_PLACEHOLDER
