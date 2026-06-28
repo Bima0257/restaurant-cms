@@ -60,15 +60,13 @@ jobs:
           ls -la deploy/ 2>/dev/null || echo "deploy/ NOT FOUND"
 
       # ─── Deploy via SSH ──────────────────────────────────
-      - name: Install rsync
-        run: sudo apt-get update && sudo apt-get install -y rsync openssh-client
-
-      - name: Setup SSH key
-        uses: webfactory/ssh-agent@v0.9.0
-        with:
-          ssh-private-key: ${{ secrets.VPS_SSH_KEY }}
+      - name: Install rsync and sshpass
+        run: sudo apt-get update && sudo apt-get install -y rsync openssh-client sshpass
 
       - name: Create SSH config
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
         run: |
           cat > ~/.ssh/config << 'SSHCONF'
           Host vps
@@ -81,31 +79,33 @@ jobs:
           sed -i "s/VPS_USER_PLACEHOLDER/${{ secrets.VPS_USER }}/" ~/.ssh/config
 
       - name: Deploy files to VPS
+        env:
+          SSHPASS: ${{ secrets.VPS_PASSWORD }}
         run: |
           set -e
 
-          ssh vps "echo SSH_OK"
+          sshpass -e ssh vps "echo SSH_OK"
 
-          ssh vps "mkdir -p /opt/restaurant-cms"
+          sshpass -e ssh vps "mkdir -p /opt/restaurant-cms"
 
           echo "=== Syncing build/ ==="
-          rsync -avz --delete /github/workspace/build/ vps:/opt/restaurant-cms/build/
+          sshpass -e rsync -avz --delete /github/workspace/build/ vps:/opt/restaurant-cms/build/
 
           echo "=== Syncing backend/ ==="
-          rsync -avz --delete /github/workspace/backend/ vps:/opt/restaurant-cms/backend/
+          sshpass -e rsync -avz --delete /github/workspace/backend/ vps:/opt/restaurant-cms/backend/
 
           echo "=== Syncing deploy/ ==="
-          rsync -avz --delete /github/workspace/deploy/ vps:/opt/restaurant-cms/deploy/
+          sshpass -e rsync -avz --delete /github/workspace/deploy/ vps:/opt/restaurant-cms/deploy/
 
           echo "=== Verifying deployment ==="
-          ssh vps "ls -la /opt/restaurant-cms/"
+          sshpass -e ssh vps "ls -la /opt/restaurant-cms/"
 
       - name: Copy frontend build to web root
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
-          key: ${{ secrets.VPS_SSH_KEY }}
+          password: ${{ secrets.VPS_PASSWORD }}
           script: |
             set -e
 
