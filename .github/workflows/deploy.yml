@@ -63,51 +63,39 @@ jobs:
       - name: Install rsync
         run: sudo apt-get update && sudo apt-get install -y rsync openssh-client
 
-      - name: Deploy files to VPS
+      - name: Setup SSH key
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.VPS_SSH_KEY }}
+
+      - name: Create SSH config
         run: |
-          set -e
-
-          # Setup SSH key
-          mkdir -p ~/.ssh
-          printf '%s\n' "${{ secrets.VPS_SSH_KEY }}" > ~/.ssh/id_ed25519
-          chmod 600 ~/.ssh/id_ed25519
-
-          # SSH config untuk memastikan key dipakai
           cat > ~/.ssh/config << 'SSHCONF'
           Host vps
             HostName VPS_HOST_PLACEHOLDER
             User VPS_USER_PLACEHOLDER
-            IdentityFile ~/.ssh/id_ed25519
-            IdentitiesOnly yes
             StrictHostKeyChecking no
             UserKnownHostsFile /dev/null
           SSHCONF
-
           sed -i "s/VPS_HOST_PLACEHOLDER/${{ secrets.VPS_HOST }}/" ~/.ssh/config
           sed -i "s/VPS_USER_PLACEHOLDER/${{ secrets.VPS_USER }}/" ~/.ssh/config
-          chmod 600 ~/.ssh/config
 
-          # Verify key works
+      - name: Deploy files to VPS
+        run: |
+          set -e
+
           ssh vps "echo SSH_OK"
 
-          # Create remote directory
           ssh vps "mkdir -p /opt/restaurant-cms"
 
-          # Rsync each folder
           echo "=== Syncing build/ ==="
-          rsync -avz --delete -e "ssh -F /home/runner/.ssh/config" \
-            /github/workspace/build/ \
-            vps:/opt/restaurant-cms/build/
+          rsync -avz --delete /github/workspace/build/ vps:/opt/restaurant-cms/build/
 
           echo "=== Syncing backend/ ==="
-          rsync -avz --delete -e "ssh -F /home/runner/.ssh/config" \
-            /github/workspace/backend/ \
-            vps:/opt/restaurant-cms/backend/
+          rsync -avz --delete /github/workspace/backend/ vps:/opt/restaurant-cms/backend/
 
           echo "=== Syncing deploy/ ==="
-          rsync -avz --delete -e "ssh -F /home/runner/.ssh/config" \
-            /github/workspace/deploy/ \
-            vps:/opt/restaurant-cms/deploy/
+          rsync -avz --delete /github/workspace/deploy/ vps:/opt/restaurant-cms/deploy/
 
           echo "=== Verifying deployment ==="
           ssh vps "ls -la /opt/restaurant-cms/"
