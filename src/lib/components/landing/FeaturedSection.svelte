@@ -11,7 +11,7 @@
     <div class="relative bg-surface-charcoal rounded-[40px] p-8 md:p-16 overflow-hidden flex flex-col md:flex-row items-center gap-12 group">
       <div class="relative w-full md:w-1/2">
         <img
-          class="w-full h-auto scale-110 -translate-x-12 md:-translate-x-24 food-shadow"
+          class="w-full h-auto scale-110 -translate-x-0 md:-translate-x-24 food-shadow"
           alt="Breakfast specials"
           src="https://lh3.googleusercontent.com/aida-public/AB6AXuAqZEXonZBQu4cmGT_WFtDqyMaDYET5PthRxfVN3rK590_hyUuZetM4sMmRLyt2NWYxiv7vcztKJISzvK0Vpd0FIYkF8zg87r9vbrMALvQPMrNDrzg_PJFZGVM4lQdlgXT8LFQLWfkwLSrHCsnZpMW_UXGAMUJpgNuXhMbGM_pvxSIaHGESYdPm5GvSyA_GJK0OpkuAYA9qxbB7GKODJsDvweHkaj6S6GZJBniI-Eqhi74ifqltdoRJtrE5tVzo5fxFwhtgHfq4SfI"
         />
@@ -24,7 +24,7 @@
         </p>
         <div class="font-label-price text-[48px] text-ivory-white mb-8">$99/-</div>
         <div class="flex gap-4">
-          <button class="bg-flame-orange hover:bg-flame-hover text-ivory-white px-10 py-4 rounded-full font-bold transition-all hover:px-12 cursor-pointer">
+          <button class="bg-flame-orange hover:bg-flame-hover text-ivory-white px-6 md:px-10 py-3 md:py-4 rounded-full font-bold transition-all hover:px-8 md:hover:px-12 cursor-pointer text-sm md:text-base">
             Order Now
           </button>
           <button class="bg-surface-container-lowest hover:bg-surface-bright text-flame-orange w-14 h-14 rounded-full flex items-center justify-center transition-transform hover:scale-110 cursor-pointer">

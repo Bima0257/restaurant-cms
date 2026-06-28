@@ -10,7 +10,7 @@
 
 <section class="px-gutter mb-section-gap">
   <div class="max-w-grid-max-width mx-auto">
-    <div class="ticket-notch bg-white py-12 px-8 md:px-16 flex flex-col md:flex-row justify-between items-center gap-8 rounded-3xl overflow-hidden shadow-2xl">
+    <div class="ticket-notch bg-white py-8 md:py-12 px-8 md:px-16 flex flex-col md:flex-row justify-between items-center gap-8 rounded-3xl overflow-hidden shadow-2xl">
       <div class="flex flex-col md:flex-row items-center gap-8">
         <div class="text-surface font-headline-h2 text-headline-h2 max-w-xs text-center md:text-left">
           Great food and lots of discounted prices
@@ -20,7 +20,7 @@
           <span class="text-muted-gray text-sm font-medium">People grabbed the offer</span>
         </div>
       </div>
-      <div class="flex items-center gap-12 border-l-2 border-dashed border-gray-200 pl-0 md:pl-12">
+      <div class="flex items-center gap-12 border-t-2 md:border-l-2 border-dashed border-gray-200 pt-6 md:pt-0 md:pl-12">
         <div class="text-center">
           <div class="text-surface font-hero-mobile text-hero-mobile font-black">50%</div>
           <div class="text-muted-gray font-bold tracking-widest uppercase text-xs">offer on Now</div>

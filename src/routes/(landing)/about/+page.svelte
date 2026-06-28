@@ -3,11 +3,11 @@
   import ChefsSection from "$lib/components/landing/ChefsSection.svelte";
 </script>
 
-<div class="pt-32 pb-20 px-gutter max-w-grid-max-width mx-auto">
-  <div class="mb-16">
+<div class="pt-24 pb-12 md:pt-32 md:pb-20 px-gutter max-w-grid-max-width mx-auto overflow-x-clip md:overflow-visible">
+  <div class="mb-8 md:mb-16">
     <SectionHeading prefix="About" highlight="WorldPlate" />
   </div>
-  <div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center mb-20">
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center mb-12 md:mb-20">
     <div>
       <p class="font-body-lg text-body-lg text-muted-gray mb-6 leading-relaxed">
         WorldPlate was founded with a simple mission: to bring the finest global cuisines to your doorstep.

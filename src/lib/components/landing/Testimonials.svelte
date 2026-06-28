@@ -24,7 +24,7 @@
   ];
 </script>
 
-<section class="px-gutter mb-section-gap relative py-20 overflow-hidden">
+<section class="px-gutter mb-section-gap relative py-12 md:py-20 overflow-hidden">
   <div class="absolute inset-0 z-0 opacity-20">
     <img
       class="w-full h-full object-cover"

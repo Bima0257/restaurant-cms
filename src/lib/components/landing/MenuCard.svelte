@@ -20,7 +20,7 @@
 <Card>
   <div class="relative mb-6">
     <img
-      class="w-full h-64 object-cover rounded-2xl mb-4"
+      class="w-full h-44 md:h-64 object-cover rounded-2xl mb-4"
       alt={title}
       src={image}
     />

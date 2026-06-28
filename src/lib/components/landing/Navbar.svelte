@@ -4,6 +4,7 @@
   import { auth } from "$lib/stores/auth";
   import { get } from "svelte/store";
   import { api } from "$lib/api";
+  import MobileBottomNav from "$lib/components/ui/MobileBottomNav.svelte";
 
   const navLinks = [
     { label: "Home", href: "/", icon: House },
@@ -74,32 +75,16 @@
   </div>
 </nav>
 
-<div class="md:hidden fixed bottom-0 left-0 w-full bg-surface-container-lowest/80 backdrop-blur-lg border-t border-deep-border flex justify-around items-center py-3 px-2 z-50">
-  {#each navLinks as link}
-    <a
-      href={link.href}
-      class={"flex flex-col items-center gap-1 " + (($page.url.pathname === link.href) || ($page.url.pathname === "/" && link.href === "/") ? "text-flame-orange" : "text-muted-gray")}
-    >
-      <link.icon size={20} />
-      <span class="text-[10px] font-bold">{link.label}</span>
-    </a>
-  {/each}
-  {#if user}
-    <a
-      href={getDashboardLink()}
-      class={"flex flex-col items-center gap-1 " + ($page.url.pathname.startsWith("/dashboard") || $page.url.pathname.startsWith("/admin") || $page.url.pathname.startsWith("/staff") || $page.url.pathname.startsWith("/superadmin") ? "text-flame-orange" : "text-muted-gray")}
-    >
-      <User size={20} />
-      <span class="text-[10px] font-bold">Profile</span>
-    </a>
-  {:else}
-    <a
-      href="/auth/login"
-      class={"flex flex-col items-center gap-1 " + ($page.url.pathname.startsWith("/auth") ? "text-flame-orange" : "text-muted-gray")}
-    >
-      <LogIn size={20} />
-      <span class="text-[10px] font-bold">Sign In</span>
-    </a>
-  {/if}
-</div>
+<MobileBottomNav
+  items={[
+    ...navLinks,
+    user
+      ? { label: "Profile", href: getDashboardLink(), icon: User }
+      : { label: "Sign In", href: "/auth/login", icon: LogIn }
+  ]}
+  isActive={(href) => {
+    if (href === "/") return $page.url.pathname === "/";
+    return $page.url.pathname === href;
+  }}
+/>
 

@@ -5,7 +5,7 @@
   const policyLinks = ["Policy Updates", "Party Sharing", "Our Rights", "Data Protection Information"];
 </script>
 
-<footer class="bg-surface-container-lowest py-section-gap border-t border-deep-border px-gutter">
+<footer class="bg-surface-container-lowest py-12 md:py-section-gap border-t border-deep-border px-gutter">
   <div class="grid grid-cols-1 md:grid-cols-4 gap-gutter max-w-grid-max-width mx-auto">
     <div class="flex flex-col gap-6">
       <div class="font-headline-h3 text-headline-h3 text-flame-orange font-bold">WorldPlate</div>
@@ -64,7 +64,7 @@
       </form>
     </div>
   </div>
-  <div class="max-w-grid-max-width mx-auto mt-20 pt-8 border-t border-deep-border text-center text-muted-gray text-xs">
+  <div class="max-w-grid-max-width mx-auto mt-12 md:mt-20 pt-8 border-t border-deep-border text-center text-muted-gray text-xs">
     &copy; 2025 WorldPlate. All Rights Reserved.
   </div>
 </footer>

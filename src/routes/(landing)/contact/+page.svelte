@@ -3,7 +3,7 @@
   import { MapPin, Phone, Mail, Clock } from "@lucide/svelte";
 </script>
 
-<div class="pt-32 pb-20 px-gutter max-w-grid-max-width mx-auto">
+<div class="pt-24 pb-12 md:pt-32 md:pb-20 px-gutter max-w-grid-max-width mx-auto">
   <div class="mb-12">
     <SectionHeading prefix="Get In" highlight="Touch" />
   </div>

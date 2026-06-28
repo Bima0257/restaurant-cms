@@ -28,6 +28,7 @@
     container.innerHTML = "";
     recaptchaWidgetId = (window as any).grecaptcha.render(container, {
       sitekey: PUBLIC_RECAPTCHA_SITE_KEY,
+      theme: "dark",
       callback: (token: string) => { recaptchaToken = token; },
       "expired-callback": () => { recaptchaToken = ""; },
     });
@@ -122,8 +123,10 @@
       {#if PUBLIC_RECAPTCHA_SITE_KEY}
         <div class="flex flex-col gap-2">
           <span class="text-muted-gray text-xs font-medium">Verification</span>
-          <div class="bg-surface-charcoal border border-deep-border rounded-xl p-4 flex justify-center">
-            <div id="g-recaptcha"></div>
+          <div class="bg-surface-charcoal border border-deep-border rounded-xl overflow-hidden">
+            <div class="flex justify-center py-3 sm:py-4">
+              <div id="g-recaptcha" class="max-sm:scale-[0.77] max-sm:origin-center"></div>
+            </div>
           </div>
         </div>
       {/if}
