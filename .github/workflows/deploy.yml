@@ -60,43 +60,80 @@ jobs:
           ls -la deploy/ 2>/dev/null || echo "deploy/ NOT FOUND"
 
       # ─── Deploy via SSH ──────────────────────────────────
-      - name: Install rsync and sshpass
-        run: sudo apt-get update && sudo apt-get install -y rsync openssh-client sshpass
-
-      - name: Create SSH config
-        run: |
-          mkdir -p ~/.ssh
-          cat > ~/.ssh/config << 'SSHCONF'
-          Host vps
-            HostName VPS_HOST_PLACEHOLDER
-            User VPS_USER_PLACEHOLDER
-            StrictHostKeyChecking no
-            UserKnownHostsFile /dev/null
-          SSHCONF
-          sed -i "s/VPS_HOST_PLACEHOLDER/${{ secrets.VPS_HOST }}/" ~/.ssh/config
-          sed -i "s/VPS_USER_PLACEHOLDER/${{ secrets.VPS_USER }}/" ~/.ssh/config
+      - name: Install paramiko
+        run: pip install paramiko
 
       - name: Deploy files to VPS
         env:
-          SSHPASS: ${{ secrets.VPS_PASSWORD }}
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_PASSWORD: ${{ secrets.VPS_PASSWORD }}
         run: |
-          set -e
+          python3 << 'PYEOF'
+          import paramiko
+          import os, sys, stat
 
-          sshpass -e ssh vps "echo SSH_OK"
+          host = os.environ["VPS_HOST"]
+          user = os.environ["VPS_USER"]
+          password = os.environ["VPS_PASSWORD"]
 
-          sshpass -e ssh vps "mkdir -p /opt/restaurant-cms"
+          print(f"Connecting to {user}@{host}...")
+          client = paramiko.SSHClient()
+          client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
-          echo "=== Syncing build/ ==="
-          sshpass -e rsync -avz --delete /github/workspace/build/ vps:/opt/restaurant-cms/build/
+          try:
+              client.connect(host, port=22, username=user, password=password, timeout=30)
+          except Exception as e:
+              print(f"SSH CONNECT FAILED: {e}")
+              sys.exit(1)
 
-          echo "=== Syncing backend/ ==="
-          sshpass -e rsync -avz --delete /github/workspace/backend/ vps:/opt/restaurant-cms/backend/
+          print("SSH_OK - connected")
 
-          echo "=== Syncing deploy/ ==="
-          sshpass -e rsync -avz --delete /github/workspace/deploy/ vps:/opt/restaurant-cms/deploy/
+          sftp = client.open_sftp()
 
-          echo "=== Verifying deployment ==="
-          sshpass -e ssh vps "ls -la /opt/restaurant-cms/"
+          def ensure_remote_dir(remote_path):
+              try:
+                  sftp.stat(remote_path)
+              except FileNotFoundError:
+                  parts = remote_path.strip("/").split("/")
+                  current = ""
+                  for part in parts:
+                      current += "/" + part
+                      try:
+                          sftp.stat(current)
+                      except FileNotFoundError:
+                          sftp.mkdir(current)
+                          print(f"  mkdir: {current}")
+
+          def upload_dir(local_dir, remote_dir):
+              print(f"\n=== Uploading {local_dir} -> {remote_dir} ===")
+              ensure_remote_dir(remote_dir)
+              for root, dirs, files in os.walk(local_dir):
+                  rel = os.path.relpath(root, local_dir)
+                  remote_sub = os.path.join(remote_dir, rel).replace("\\", "/")
+                  if rel != ".":
+                      ensure_remote_dir(remote_sub)
+                  for f in files:
+                      local_file = os.path.join(root, f)
+                      remote_file = os.path.join(remote_sub, f).replace("\\", "/")
+                      try:
+                          sftp.put(local_file, remote_file)
+                          print(f"  OK: {f}")
+                      except Exception as e:
+                          print(f"  FAIL: {f} - {e}")
+
+          upload_dir("/github/workspace/build", "/opt/restaurant-cms/build")
+          upload_dir("/github/workspace/backend", "/opt/restaurant-cms/backend")
+          upload_dir("/github/workspace/deploy", "/opt/restaurant-cms/deploy")
+
+          print("\n=== Verifying ===")
+          stdin, stdout, stderr = client.exec_command("ls -la /opt/restaurant-cms/")
+          print(stdout.read().decode())
+
+          sftp.close()
+          client.close()
+          print("\nDeploy complete.")
+          PYEOF
 
       - name: Copy frontend build to web root
         uses: appleboy/ssh-action@v1.0.3
