@@ -8,7 +8,7 @@
 
 <div class="stone-texture min-h-screen">
   <Navbar />
-  <main>
+  <main class="pb-24 md:pb-0">
     {@render children()}
   </main>
   <Footer />

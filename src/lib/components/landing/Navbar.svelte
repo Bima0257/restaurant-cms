@@ -1,18 +1,15 @@
 <script lang="ts">
-  import { Menu, X, User, LogOut } from "@lucide/svelte";
+  import { House, UtensilsCrossed, Info, Phone, User, LogIn, LogOut } from "@lucide/svelte";
   import { page } from "$app/stores";
   import { auth } from "$lib/stores/auth";
   import { get } from "svelte/store";
-
-  let mobileOpen = $state(false);
-
   import { api } from "$lib/api";
 
   const navLinks = [
-    { label: "Home", href: "/" },
-    { label: "Menu", href: "/menu" },
-    { label: "About Us", href: "/about" },
-    { label: "Contact", href: "/contact" },
+    { label: "Home", href: "/", icon: House },
+    { label: "Menu", href: "/menu", icon: UtensilsCrossed },
+    { label: "About Us", href: "/about", icon: Info },
+    { label: "Contact", href: "/contact", icon: Phone },
   ];
 
   let user = $derived(get(auth));
@@ -63,47 +60,46 @@
           <LogOut size={18} class="hidden md:block" />
         </button>
       {:else}
-        <a href="/auth/login" class="text-ivory-white font-medium hover:text-flame-orange transition-colors duration-300 hidden md:inline">
+        <a href="/auth/login" class="text-ivory-white font-medium hover:text-flame-orange transition-colors duration-300">
           Sign In
         </a>
         <a
           href="/auth/register"
-          class="bg-flame-orange hover:bg-flame-hover text-ivory-white px-5 py-2 rounded-full font-bold text-sm transition-all"
+          class="hidden md:inline bg-flame-orange hover:bg-flame-hover text-ivory-white px-5 py-2 rounded-full font-bold text-sm transition-all"
         >
           Register
         </a>
       {/if}
-
-      <button class="md:hidden text-ivory-white" onclick={() => (mobileOpen = !mobileOpen)} aria-label="Toggle menu">
-        {#if mobileOpen}
-          <X size={24} />
-        {:else}
-          <Menu size={24} />
-        {/if}
-      </button>
     </div>
   </div>
-
-  {#if mobileOpen}
-    <div class="md:hidden bg-surface/95 backdrop-blur-md border-t border-deep-border px-gutter py-4">
-      {#each navLinks as link}
-        <a
-          href={link.href}
-          class="block py-3 text-ivory-white font-medium hover:text-flame-orange transition-colors"
-          onclick={() => (mobileOpen = false)}
-        >
-          {link.label}
-        </a>
-      {/each}
-      <div class="border-t border-deep-border mt-4 pt-4 flex flex-col gap-3">
-        {#if user}
-          <a href={getDashboardLink()} class="text-flame-orange font-bold">Dashboard</a>
-          <button onclick={() => { handleLogout(); mobileOpen = false; }} class="text-left text-red-400 font-medium cursor-pointer">Logout</button>
-        {:else}
-          <a href="/auth/login" class="text-ivory-white font-medium">Sign In</a>
-          <a href="/auth/register" class="text-flame-orange font-bold">Register</a>
-        {/if}
-      </div>
-    </div>
-  {/if}
 </nav>
+
+<div class="md:hidden fixed bottom-0 left-0 w-full bg-surface-container-lowest/80 backdrop-blur-lg border-t border-deep-border flex justify-around items-center py-3 px-2 z-50">
+  {#each navLinks as link}
+    <a
+      href={link.href}
+      class={"flex flex-col items-center gap-1 " + (($page.url.pathname === link.href) || ($page.url.pathname === "/" && link.href === "/") ? "text-flame-orange" : "text-muted-gray")}
+    >
+      <link.icon size={20} />
+      <span class="text-[10px] font-bold">{link.label}</span>
+    </a>
+  {/each}
+  {#if user}
+    <a
+      href={getDashboardLink()}
+      class={"flex flex-col items-center gap-1 " + ($page.url.pathname.startsWith("/dashboard") || $page.url.pathname.startsWith("/admin") || $page.url.pathname.startsWith("/staff") || $page.url.pathname.startsWith("/superadmin") ? "text-flame-orange" : "text-muted-gray")}
+    >
+      <User size={20} />
+      <span class="text-[10px] font-bold">Profile</span>
+    </a>
+  {:else}
+    <a
+      href="/auth/login"
+      class={"flex flex-col items-center gap-1 " + ($page.url.pathname.startsWith("/auth") ? "text-flame-orange" : "text-muted-gray")}
+    >
+      <LogIn size={20} />
+      <span class="text-[10px] font-bold">Sign In</span>
+    </a>
+  {/if}
+</div>
+
