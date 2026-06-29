@@ -10,7 +10,7 @@ from app.models.refresh_token import RefreshToken
 
 
 def create_access_token(user_id: int) -> str:
-    to_encode = {"sub": user_id}
+    to_encode = {"sub": str(user_id)}
     expire = datetime.now(timezone.utc) + timedelta(
         minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES
     )
