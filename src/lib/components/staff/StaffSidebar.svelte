@@ -5,6 +5,7 @@
     ShoppingCart,
     Package,
     AlertTriangle,
+    User,
     LogOut,
   } from "@lucide/svelte";
   import { toast } from "svelte-sonner";
@@ -15,6 +16,7 @@
     { label: "Orders", href: "/staff/orders", icon: ShoppingCart },
     { label: "Stock Check", href: "/staff/stock", icon: Package },
     { label: "Alerts", href: "/staff/alerts", icon: AlertTriangle },
+    { label: "Profile", href: "/staff/profile", icon: User },
   ];
 
   async function handleLogout() {

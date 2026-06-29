@@ -146,7 +146,7 @@
             role={onRowClick ? "button" : undefined}
             tabindex={onRowClick ? 0 : undefined}
           >
-            {#each (row as any).getVisibleCells() as tanstackCell, i}
+            {#each (row as any).getAllCells() as tanstackCell, i}
               <td class="py-3 px-4 text-ivory-white">
                 {#if cell}
                   {@render cell({ col: columns[i], row: row.original, value: (tanstackCell as any).getValue() })}

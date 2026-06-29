@@ -1,0 +1,1 @@
+import{o as e,s as t}from"./Dt9v6au2.js";import"./xihTtKlq.js";import{t as n}from"./CrurBuCt.js";var r=new Set([`$$slots`,`$$events`,`$$legacy`]);function i(i,a){let o=e(a,r),s=[[`path`,{d:`m10 17 5-5-5-5`}],[`path`,{d:`M15 12H3`}],[`path`,{d:`M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4`}]];n(i,t({name:`log-in`},()=>o,{get iconNode(){return s}}))}export{i as t};

@@ -26,6 +26,19 @@ from app.services.backup_service import (
 router = APIRouter(prefix="/api/superadmin", tags=["Superadmin"])
 
 
+@router.get("/accounts", response_model=list[UserOut])
+def list_accounts(
+    current_user: User = Depends(require_superadmin),
+    db: Session = Depends(get_db),
+):
+    return (
+        db.query(User)
+        .filter(User.role.in_(["admin", "staff"]))
+        .order_by(User.created_at.desc())
+        .all()
+    )
+
+
 @router.get("/admins", response_model=list[UserOut])
 def list_admins(
     current_user: User = Depends(require_superadmin),

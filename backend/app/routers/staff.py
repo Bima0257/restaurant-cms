@@ -1,3 +1,5 @@
+from datetime import datetime, timezone
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
@@ -6,11 +8,12 @@ from app.dependencies import require_staff
 from app.models.ingredient import Ingredient
 from app.models.order import Order
 from app.models.stock_alert import StockAlert
+from app.models.stock_transaction import StockTransaction
 from app.models.user import User
 from app.schemas.ingredient import IngredientOut
 from app.schemas.order import OrderOut, OrderStatusUpdate
-from app.schemas.stock import StockAlertOut
-from app.services.stock_service import check_and_create_alerts
+from app.schemas.stock import StockAdjustment, StockAlertOut, StockInCreate, StockTransactionOut
+from app.services.stock_service import check_and_create_alerts, record_transaction
 
 router = APIRouter(prefix="/api/staff", tags=["Staff"])
 
@@ -118,3 +121,81 @@ def list_alerts(
             data.min_stock = float(alert.ingredient.min_stock)
         result.append(data)
     return result
+
+
+@router.post("/stock-in", response_model=StockTransactionOut)
+def staff_stock_in(
+    data: StockInCreate,
+    current_user: User = Depends(require_staff),
+    db: Session = Depends(get_db),
+):
+    try:
+        tx = record_transaction(
+            db=db,
+            ingredient_id=data.ingredient_id,
+            type="IN",
+            qty=data.qty,
+            reference_type="purchase",
+            notes=data.notes,
+            created_by=current_user.id,
+        )
+        db.commit()
+        db.refresh(tx)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+    result = StockTransactionOut.model_validate(tx)
+    if tx.ingredient:
+        result.ingredient_name = tx.ingredient.name
+    return result
+
+
+@router.post("/stock/adjust", response_model=StockTransactionOut)
+def staff_adjust_stock(
+    data: StockAdjustment,
+    current_user: User = Depends(require_staff),
+    db: Session = Depends(get_db),
+):
+    try:
+        tx = record_transaction(
+            db=db,
+            ingredient_id=data.ingredient_id,
+            type="ADJUSTMENT",
+            qty=data.qty,
+            reference_type="manual",
+            notes=data.notes,
+            created_by=current_user.id,
+        )
+        db.commit()
+        db.refresh(tx)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+    result = StockTransactionOut.model_validate(tx)
+    if tx.ingredient:
+        result.ingredient_name = tx.ingredient.name
+    return result
+
+
+@router.put("/alerts/{alert_id}/resolve", response_model=StockAlertOut)
+def staff_resolve_alert(
+    alert_id: int,
+    current_user: User = Depends(require_staff),
+    db: Session = Depends(get_db),
+):
+    alert = db.query(StockAlert).filter(StockAlert.id == alert_id).first()
+    if not alert:
+        raise HTTPException(status_code=404, detail="Alert not found")
+    alert.is_resolved = True
+    alert.resolved_by = current_user.id
+    alert.resolved_at = datetime.now(timezone.utc)
+    db.commit()
+    db.refresh(alert)
+
+    data = StockAlertOut.model_validate(alert)
+    if alert.ingredient:
+        data.ingredient_name = alert.ingredient.name
+        data.ingredient_sku = alert.ingredient.sku
+        data.stock_qty = float(alert.ingredient.stock_qty)
+        data.min_stock = float(alert.ingredient.min_stock)
+    return data

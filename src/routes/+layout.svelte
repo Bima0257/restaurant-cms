@@ -60,6 +60,6 @@
   });
 </script>
 
-<Toaster theme="dark" position="bottom-right" richColors closeButton />
+<Toaster theme="dark" position="top-right" richColors closeButton />
 <ConfirmDialog />
 {@render children()}

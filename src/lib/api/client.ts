@@ -3,6 +3,12 @@ import { auth } from "$lib/stores/auth";
 
 const API_BASE = (publicEnv as Record<string, string>).PUBLIC_API_URL || "http://localhost:8000/api";
 
+const FETCH_TIMEOUT = 15000;
+
+async function fetchWithTimeout(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
+  return fetch(input, { ...init, signal: AbortSignal.timeout(FETCH_TIMEOUT) });
+}
+
 let isRefreshing = false;
 let refreshQueue: Array<{
   resolve: (token: string) => void;
@@ -14,7 +20,7 @@ async function refreshTokenRequest(): Promise<string | null> {
   if (!refreshToken) return null;
 
   try {
-    const res = await fetch(`${API_BASE}/auth/refresh`, {
+    const res = await fetchWithTimeout(`${API_BASE}/auth/refresh`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ refresh_token: refreshToken }),
@@ -42,7 +48,7 @@ async function request<T>(
     headers["Authorization"] = `Bearer ${token}`;
   }
 
-  let res = await fetch(`${API_BASE}${endpoint}`, {
+  let res = await fetchWithTimeout(`${API_BASE}${endpoint}`, {
     ...options,
     headers,
   });
@@ -58,7 +64,7 @@ async function request<T>(
         refreshQueue.forEach((q) => q.resolve(newToken));
         refreshQueue = [];
 
-        res = await fetch(`${API_BASE}${endpoint}`, {
+        res = await fetchWithTimeout(`${API_BASE}${endpoint}`, {
           ...options,
           headers,
         });
@@ -77,7 +83,7 @@ async function request<T>(
           resolve: async (newToken: string) => {
             headers["Authorization"] = `Bearer ${newToken}`;
             try {
-              const retryRes = await fetch(`${API_BASE}${endpoint}`, {
+              const retryRes = await fetchWithTimeout(`${API_BASE}${endpoint}`, {
                 ...options,
                 headers,
               });
@@ -177,6 +183,12 @@ export const api = {
   staffCheckStock: () => request<any[]>("/staff/stock-check"),
   staffGetAlerts: (unresolvedOnly = true) =>
     request<any[]>(`/staff/alerts?unresolved_only=${unresolvedOnly}`),
+  staffStockIn: (data: { ingredient_id: number; qty: number; notes?: string }) =>
+    request<any>("/staff/stock-in", { method: "POST", body: JSON.stringify(data) }),
+  staffAdjustStock: (data: { ingredient_id: number; qty: number; notes?: string }) =>
+    request<any>("/staff/stock/adjust", { method: "POST", body: JSON.stringify(data) }),
+  staffResolveAlert: (id: number) =>
+    request<any>(`/staff/alerts/${id}/resolve`, { method: "PUT" }),
 
   // Admin
   adminListMenu: (categoryId?: number) =>
@@ -259,6 +271,8 @@ export const api = {
   superadminDeleteStaff: (id: number) =>
     request<void>(`/superadmin/staff/${id}`, { method: "DELETE" }),
 
+  superadminListAccounts: () => request<any[]>("/superadmin/accounts"),
+
   superadminGetAuditLog: () => request<any[]>("/superadmin/audit-log"),
   superadminResetPassword: (userId: number, newPassword: string) =>
     request<any>(`/superadmin/reset-password/${userId}?new_password=${newPassword}`, {
@@ -285,7 +299,7 @@ export const api = {
     request<{ filename: string; size: number; created_at: string }[]>("/superadmin/backups"),
   superadminDownloadBackup: async (filename: string): Promise<void> => {
     const token = localStorage.getItem("token");
-    const res = await fetch(`${API_BASE}/superadmin/backup/download/${filename}`, {
+    const res = await fetchWithTimeout(`${API_BASE}/superadmin/backup/download/${filename}`, {
       headers: token ? { Authorization: `Bearer ${token}` } : {},
     });
     if (!res.ok) throw new Error("Download failed");
@@ -303,7 +317,7 @@ export const api = {
     const token = localStorage.getItem("token");
     const formData = new FormData();
     formData.append("file", file);
-    const res = await fetch(`${API_BASE}/superadmin/backup/restore`, {
+    const res = await fetchWithTimeout(`${API_BASE}/superadmin/backup/restore`, {
       method: "POST",
       headers: token ? { Authorization: `Bearer ${token}` } : {},
       body: formData,
@@ -322,7 +336,7 @@ export const api = {
     const token = localStorage.getItem("token");
     const formData = new FormData();
     formData.append("file", file);
-    const res = await fetch(`${API_BASE}/upload`, {
+    const res = await fetchWithTimeout(`${API_BASE}/upload`, {
       method: "POST",
       headers: token ? { Authorization: `Bearer ${token}` } : {},
       body: formData,
@@ -335,17 +349,20 @@ export const api = {
   },
 
   // Reports
-  downloadReport: async (reportType: string, params: Record<string, string> = {}): Promise<void> => {
+  fetchReportBlob: async (reportType: string, params: Record<string, string> = {}): Promise<Blob> => {
     const token = localStorage.getItem("token");
     const qs = new URLSearchParams(params).toString();
-    const res = await fetch(`${API_BASE}/reports/${reportType}${qs ? `?${qs}` : ""}`, {
+    const res = await fetchWithTimeout(`${API_BASE}/reports/${reportType}${qs ? `?${qs}` : ""}`, {
       headers: token ? { Authorization: `Bearer ${token}` } : {},
     });
     if (!res.ok) {
       const error = await res.json().catch(() => ({ message: res.statusText }));
       throw new Error(error.message || `Download failed: HTTP ${res.status}`);
     }
-    const blob = await res.blob();
+    return res.blob();
+  },
+  downloadReport: async (reportType: string, params: Record<string, string> = {}): Promise<void> => {
+    const blob = await api.fetchReportBlob(reportType, params);
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;

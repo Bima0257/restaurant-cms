@@ -8,6 +8,7 @@
     FolderTree,
     FileText,
     Settings,
+    User,
     LogOut,
   } from "@lucide/svelte";
   import { toast } from "svelte-sonner";
@@ -45,6 +46,7 @@
       label: "System",
       items: [
         { label: "Settings", href: "/admin/settings", icon: Settings },
+        { label: "Profile", href: "/admin/profile", icon: User },
       ],
     },
   ];

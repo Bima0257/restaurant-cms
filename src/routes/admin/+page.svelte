@@ -1,71 +1,126 @@
 <script lang="ts">
+  import { onMount } from "svelte";
+  import { Loader2 } from "@lucide/svelte";
+  import { toast } from "svelte-sonner";
+  import { api } from "$lib/api";
   import StatCard from "$lib/components/admin/StatCard.svelte";
-  import DataTable from "$lib/components/ui/DataTable.svelte";
   import {
     UtensilsCrossed,
     ShoppingCart,
     DollarSign,
     Users,
-    TrendingUp,
-    TrendingDown,
   } from "@lucide/svelte";
   import SectionHeading from "$lib/components/ui/SectionHeading.svelte";
 
-  const stats = [
-    { title: "Total Menu Items", value: "48", icon: UtensilsCrossed, trend: "12%", trendUp: true },
-    { title: "Total Orders", value: "156", icon: ShoppingCart, trend: "8%", trendUp: true },
-    { title: "Revenue", value: "$12,480", icon: DollarSign, trend: "15%", trendUp: true },
-    { title: "Customers", value: "284", icon: Users, trend: "3%", trendUp: false },
-  ];
+  let loading = $state(true);
+  let menuItems: any[] = $state([]);
+  let orders: any[] = $state([]);
+  let users: any[] = $state([]);
 
-  const recentColumns = [
-    { key: "id", label: "Order ID" },
-    { key: "customer", label: "Customer" },
-    { key: "items", label: "Items" },
-    { key: "total", label: "Total" },
-    { key: "status", label: "Status" },
-  ];
+  onMount(async () => {
+    try {
+      const [menuRes, ordersRes] = await Promise.all([
+        api.adminListMenu().catch(() => []),
+        api.adminListOrders().catch(() => []),
+      ]);
+      menuItems = menuRes;
+      orders = ordersRes;
+    } catch { /* ignore */ }
+    loading = false;
+  });
 
-  const recentOrders = [
-    { id: "#WP-1024", customer: "John Smith", items: "3", total: "$57.00", status: "Completed" },
-    { id: "#WP-1023", customer: "Emily Davis", items: "2", total: "$43.00", status: "Preparing" },
-    { id: "#WP-1022", customer: "Alex Johnson", items: "4", total: "$89.00", status: "Pending" },
-    { id: "#WP-1021", customer: "Sarah Lee", items: "1", total: "$24.00", status: "Completed" },
-    { id: "#WP-1020", customer: "Mike Brown", items: "2", total: "$38.00", status: "Delivered" },
-  ];
+  let stats = $derived([
+    { title: "Total Menu Items", value: String(menuItems.length), icon: UtensilsCrossed, trend: `${menuItems.length}`, trendUp: true },
+    { title: "Total Orders", value: String(orders.length), icon: ShoppingCart, trend: `${orders.filter((o) => o.status === "pending").length} pending`, trendUp: true },
+    { title: "Revenue", value: `$${orders.reduce((sum, o) => sum + Number(o.total_price), 0).toFixed(0)}`, icon: DollarSign, trend: `${orders.filter((o) => o.payment_status === "paid").length} paid`, trendUp: true },
+    { title: "Active Items", value: String(menuItems.filter((m) => m.is_available).length), icon: Users, trend: `${menuItems.filter((m) => !m.is_available).length} unavailable`, trendUp: false },
+  ]);
 
   const statusColors: Record<string, string> = {
-    Completed: "text-green-400",
-    Preparing: "text-flame-orange",
-    Pending: "text-yellow-400",
-    Delivered: "text-blue-400",
+    pending: "text-yellow-400",
+    confirmed: "text-blue-400",
+    preparing: "text-flame-orange",
+    ready: "text-purple-400",
+    delivered: "text-green-400",
+    completed: "text-green-400",
+    cancelled: "text-red-400",
   };
+
+  const statusBg: Record<string, string> = {
+    pending: "bg-yellow-500/10 border-yellow-500/20",
+    confirmed: "bg-blue-500/10 border-blue-500/20",
+    preparing: "bg-flame-orange/10 border-flame-orange/20",
+    ready: "bg-purple-500/10 border-purple-500/20",
+    delivered: "bg-green-500/10 border-green-500/20",
+    completed: "bg-green-500/10 border-green-500/20",
+    cancelled: "bg-red-500/10 border-red-500/20",
+  };
+
+  function label(str: string) {
+    return str.charAt(0).toUpperCase() + str.slice(1);
+  }
+
+  function formatPrice(price: number) {
+    return `$${Number(price).toFixed(2)}`;
+  }
+
+  function formatDate(dateStr: string) {
+    const d = new Date(dateStr);
+    return d.toLocaleDateString("en-US", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
+  }
+
+  let recentOrders = $derived(orders.slice(0, 5));
 </script>
 
 <div class="mb-8">
   <SectionHeading prefix="Admin" highlight="Dashboard" />
 </div>
 
-<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-  {#each stats as stat}
-    <StatCard {...stat} />
-  {/each}
-</div>
+{#if loading}
+  <div class="flex items-center justify-center py-12">
+    <Loader2 size={24} class="animate-spin text-muted-gray" />
+  </div>
+{:else}
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    {#each stats as stat}
+      <StatCard {...stat} />
+    {/each}
+  </div>
 
-<div class="bg-surface-card rounded-2xl border border-deep-border p-6">
-  <div class="flex items-center justify-between mb-6">
-    <h3 class="font-headline-h3 text-headline-h3 text-ivory-white">Recent Orders</h3>
-    <a href="/admin/orders" class="text-sm text-flame-orange hover:underline">View All</a>
+  <div class="bg-surface-card rounded-2xl border border-deep-border p-6">
+    <div class="flex items-center justify-between mb-6">
+      <h3 class="font-headline-h3 text-headline-h3 text-ivory-white">Recent Orders</h3>
+      <a href="/admin/orders" class="text-sm text-flame-orange hover:underline">View All</a>
+    </div>
+    {#if recentOrders.length === 0}
+      <p class="text-muted-gray text-sm text-center py-8">No orders yet</p>
+    {:else}
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="border-b border-deep-border">
+              <th class="text-left py-3 px-4 text-muted-gray font-medium text-[10px] uppercase tracking-wider">Order</th>
+              <th class="text-left py-3 px-4 text-muted-gray font-medium text-[10px] uppercase tracking-wider hidden md:table-cell">Date</th>
+              <th class="text-left py-3 px-4 text-muted-gray font-medium text-[10px] uppercase tracking-wider">Total</th>
+              <th class="text-left py-3 px-4 text-muted-gray font-medium text-[10px] uppercase tracking-wider">Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {#each recentOrders as order}
+              <tr class="border-b border-deep-border/50 hover:bg-surface-charcoal/40 transition-colors">
+                <td class="py-3 px-4 text-ivory-white font-medium">{order.order_number}</td>
+                <td class="py-3 px-4 text-muted-gray text-sm hidden md:table-cell">{formatDate(order.created_at)}</td>
+                <td class="py-3 px-4 text-ivory-white">{formatPrice(order.total_price)}</td>
+                <td class="py-3 px-4">
+                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border {statusBg[order.status] || 'bg-gray-500/10 border-gray-500/20'} {statusColors[order.status] || 'text-muted-gray'}">
+                    {label(order.status)}
+                  </span>
+                </td>
+              </tr>
+            {/each}
+          </tbody>
+        </table>
+      </div>
+    {/if}
   </div>
-  <div class="overflow-x-auto">
-    <DataTable columns={recentColumns} rows={recentOrders}>
-      {#snippet cell({ col, row })}
-        {#if col.key === "status"}
-          <span class={statusColors[row.status] || "text-muted-gray"}>{row.status}</span>
-        {:else}
-          <span class="text-ivory-white">{row[col.key]}</span>
-        {/if}
-      {/snippet}
-    </DataTable>
-  </div>
-</div>
+{/if}

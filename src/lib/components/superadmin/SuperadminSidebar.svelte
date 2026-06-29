@@ -6,7 +6,7 @@
     Users,
     ClipboardList,
     Database,
-    Settings,
+    User,
     LogOut,
   } from "@lucide/svelte";
   import { toast } from "svelte-sonner";
@@ -28,8 +28,7 @@
     {
       label: "Users",
       items: [
-        { label: "Admins", href: "/superadmin/admins", icon: Shield },
-        { label: "Staff", href: "/superadmin/staff", icon: Users },
+        { label: "Accounts", href: "/superadmin/accounts", icon: Users },
       ],
     },
     {
@@ -37,6 +36,7 @@
       items: [
         { label: "Audit Log", href: "/superadmin/audit-log", icon: ClipboardList },
         { label: "Database", href: "/superadmin/backup", icon: Database },
+        { label: "Profile", href: "/superadmin/profile", icon: User },
       ],
     },
   ];
@@ -56,7 +56,7 @@
 
 <aside class="w-64 bg-surface-card border-r border-deep-border flex flex-col h-screen sticky top-0">
   <div class="p-6 border-b border-deep-border">
-    <a href="/superadmin/admins" class="font-headline-h3 text-headline-h3 text-flame-orange font-extrabold">WorldPlate</a>
+    <a href="/superadmin/accounts" class="font-headline-h3 text-headline-h3 text-flame-orange font-extrabold">WorldPlate</a>
     <p class="text-muted-gray text-xs mt-1">Superadmin Panel</p>
   </div>
 
@@ -83,14 +83,7 @@
     {/each}
   </nav>
 
-  <div class="p-4 border-t border-deep-border space-y-1">
-    <a
-      href="/admin"
-      class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-muted-gray hover:text-ivory-white hover:bg-surface-charcoal transition-colors"
-    >
-      <Settings size={18} />
-      <span class="text-sm">Admin Dashboard</span>
-    </a>
+  <div class="p-4 border-t border-deep-border">
     <button
       onclick={handleLogout}
       class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-muted-gray hover:text-red-400 hover:bg-red-500/10 transition-colors w-full cursor-pointer"
