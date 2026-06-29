@@ -1,6 +1,6 @@
 <script lang="ts">
   import "../layout.css";
-  import { LayoutDashboard, ShoppingBag, Award, User } from "@lucide/svelte";
+  import { LayoutDashboard, UtensilsCrossed, ShoppingCart, ShoppingBag, User } from "@lucide/svelte";
   import CustomerSidebar from "$lib/components/customer/CustomerSidebar.svelte";
   import CustomerHeader from "$lib/components/customer/CustomerHeader.svelte";
   import MobileBottomNav from "$lib/components/ui/MobileBottomNav.svelte";
@@ -9,9 +9,10 @@
 
   const mobileTabs = [
     { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-    { label: "Orders", href: "/account/orders", icon: ShoppingBag },
-    { label: "Rewards", href: "#", icon: Award },
-    { label: "Profile", href: "#", icon: User },
+    { label: "Menu", href: "/dashboard/menu", icon: UtensilsCrossed },
+    { label: "Cart", href: "/dashboard/cart", icon: ShoppingCart },
+    { label: "Orders", href: "/dashboard/orders", icon: ShoppingBag },
+    { label: "Profile", href: "/dashboard/profile", icon: User },
   ];
 </script>
 

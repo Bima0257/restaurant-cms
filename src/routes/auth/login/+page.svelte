@@ -74,7 +74,7 @@
       if (role === "superadmin") goto("/superadmin");
       else if (role === "admin") goto("/admin");
       else if (role === "staff") goto("/staff/orders");
-      else goto("/");
+      else goto("/dashboard");
     } catch (err: any) {
       if (err.message.includes("Email not verified")) {
         toast.error("Email not verified. Please verify your email first.");

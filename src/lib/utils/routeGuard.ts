@@ -14,7 +14,7 @@ export function requireAuth(roles?: Role[]) {
   }
 
   if (roles && !roles.includes(user.role)) {
-    if (user.role === "customer") throw redirect(302, "/");
+  if (user.role === "customer") throw redirect(302, "/dashboard");
     if (user.role === "superadmin") throw redirect(302, "/admin/super/admins");
     if (user.role === "admin") throw redirect(302, "/admin");
     if (user.role === "staff") throw redirect(302, "/staff/orders");
@@ -31,5 +31,5 @@ export function redirectAuthenticated() {
   if (user.role === "superadmin") throw redirect(302, "/admin/super/admins");
   if (user.role === "admin") throw redirect(302, "/admin");
   if (user.role === "staff") throw redirect(302, "/staff/orders");
-  if (user.role === "customer") throw redirect(302, "/");
+  if (user.role === "customer") throw redirect(302, "/dashboard");
 }

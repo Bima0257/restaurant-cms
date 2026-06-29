@@ -1,14 +1,31 @@
 <script lang="ts">
   import { page } from "$app/stores";
-  import { LayoutDashboard, ShoppingBag, Heart, Award, Settings, Headset } from "@lucide/svelte";
+  import { goto } from "$app/navigation";
+  import { LayoutDashboard, UtensilsCrossed, ShoppingCart, ShoppingBag, Award, User, Headset, LogOut } from "@lucide/svelte";
+  import { toast } from "svelte-sonner";
+  import { auth } from "$lib/stores/auth";
+  import { api } from "$lib/api";
 
   const navItems = [
     { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-    { label: "My Orders", href: "/account/orders", icon: ShoppingBag },
-    { label: "Favorite Dishes", href: "#", icon: Heart },
+    { label: "Menu", href: "/dashboard/menu", icon: UtensilsCrossed },
+    { label: "My Orders", href: "/dashboard/orders", icon: ShoppingBag },
+    { label: "Cart", href: "/dashboard/cart", icon: ShoppingCart },
     { label: "Rewards", href: "#", icon: Award },
-    { label: "Settings", href: "#", icon: Settings },
+    { label: "Profile", href: "/dashboard/profile", icon: User },
   ];
+
+  async function handleLogout() {
+    try {
+      const refreshToken = auth.getRefreshToken();
+      if (refreshToken) {
+        await api.logout(refreshToken);
+      }
+    } catch { /* ignore */ }
+    auth.logout();
+    toast.success("Logged out successfully");
+    goto("/");
+  }
 </script>
 
 <aside class="w-72 bg-surface-container-lowest border-r border-deep-border hidden md:flex flex-col z-50 shrink-0 h-screen sticky top-0">
@@ -28,7 +45,16 @@
       </a>
     {/each}
   </nav>
-  <div class="p-6 mt-auto">
+  <div class="p-4 border-t border-deep-border">
+    <button
+      onclick={handleLogout}
+      class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-muted-gray hover:text-red-400 hover:bg-red-500/10 transition-colors w-full cursor-pointer"
+    >
+      <LogOut size={18} />
+      <span class="text-sm">Logout</span>
+    </button>
+  </div>
+  <div class="p-6">
     <div class="bg-surface-card p-4 rounded-2xl border border-deep-border">
       <div class="flex items-center gap-3">
         <div class="w-10 h-10 rounded-full bg-flame-orange/20 flex items-center justify-center">
