@@ -60,11 +60,11 @@
         paginatedRowModel: createPaginatedRowModel(),
         coreRowModel: createCoreRowModel(),
       },
-      columns: tableColumns,
-      data: rows,
+      get columns() { return tableColumns; },
+      get data() { return rows; },
       state: {
-        sorting,
-        pagination: paginationState,
+        get sorting() { return sorting; },
+        get pagination() { return paginationState; },
       },
       onSortingChange: (updater: any) => {
         sorting = typeof updater === "function" ? updater(sorting) : updater;
