@@ -30,6 +30,7 @@ class CategoryOut(BaseModel):
     image_url: Optional[str] = None
     sort_order: int
     is_active: bool
+    menu_items_count: int = 0
     created_at: datetime
     updated_at: datetime
 

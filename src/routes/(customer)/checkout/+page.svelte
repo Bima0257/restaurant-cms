@@ -36,7 +36,7 @@
         delivery_address: deliveryAddress || undefined,
         notes: notes || undefined,
       });
-      goto(`/account/orders/${order.id}`);
+      goto(`/dashboard/orders/${order.id}`);
     } catch (err: any) {
       toast.error(err.message);
     } finally {

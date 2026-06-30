@@ -1,0 +1,1 @@
+import{A as e,D as t,H as n,J as r,K as i,O as a,a as o,dt as s,y as c}from"./oacvsz_z.js";import"./xihTtKlq.js";var l=e(`<h2> <span class="text-flame-orange"> </span></h2>`);function u(e,u){let d=o(u,`class`,3,``);var f=l(),p=i(f),m=r(p),h=i(m,!0);s(m),s(f),n(()=>{c(f,1,`signature-bracket ${d()??``}`),t(p,`${u.prefix??``} `),t(h,u.highlight)}),a(e,f)}export{u as t};

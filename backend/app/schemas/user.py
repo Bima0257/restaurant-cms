@@ -72,14 +72,6 @@ class ChangePassword(BaseModel):
     old_password: str
     new_password: str
 
-    @field_validator("new_password")
-    @classmethod
-    def new_password_meets_policy(cls, v: str) -> str:
-        err = validate_password(v)
-        if err:
-            raise ValueError(err)
-        return v
-
 
 class Token(BaseModel):
     access_token: str

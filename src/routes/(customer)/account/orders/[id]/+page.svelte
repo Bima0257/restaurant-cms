@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount } from "svelte";
+  import { goto } from "$app/navigation";
   import { page } from "$app/stores";
   import { ArrowLeft } from "@lucide/svelte";
   import { toast } from "svelte-sonner";
@@ -42,8 +43,6 @@
       toast.error(err.message);
     }
   }
-
-  import { goto } from "$app/navigation";
 
   function statusColor(status: string) {
     const colors: Record<string, string> = {

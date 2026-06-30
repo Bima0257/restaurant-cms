@@ -31,6 +31,7 @@ from app.services.login_rate_limit import (
     record_login_attempt,
 )
 from app.services.otp_service import create_and_send_otp, resend_otp, verify_otp
+from app.services.password_policy import validate_password
 from app.services.token_service import (
     create_tokens,
     refresh_access_token,
@@ -194,6 +195,10 @@ def change_password(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Current password is incorrect",
         )
+
+    err = validate_password(data.new_password, email=current_user.email)
+    if err:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=err)
 
     current_user.hashed_password = hash_password(data.new_password)
     db.commit()

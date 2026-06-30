@@ -32,6 +32,7 @@ def list_menu(
         data = MenuItemOut.model_validate(item)
         if item.category:
             data.category_name = item.category.name
+            data.category_slug = item.category.slug
         result.append(data)
     return result
 
@@ -44,6 +45,7 @@ def get_menu_item(item_id: int, db: Session = Depends(get_db)):
     data = MenuItemOut.model_validate(item)
     if item.category:
         data.category_name = item.category.name
+        data.category_slug = item.category.slug
     return data
 
 

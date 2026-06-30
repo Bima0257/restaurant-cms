@@ -49,7 +49,7 @@
   }
 
   function onNameChange() {
-    if (!editing) form.slug = generateSlug(form.name);
+    form.slug = generateSlug(form.name);
   }
 
   async function save() {
@@ -134,7 +134,7 @@
             <button onclick={() => openEdit(cat)} class="p-1.5 rounded-lg hover:bg-flame-orange/10 text-muted-gray hover:text-flame-orange transition-colors cursor-pointer" title="Edit">
               <Pencil size={14} />
             </button>
-            <button onclick={() => deleteCat(cat)} class="p-1.5 rounded-lg hover:bg-red-500/10 text-muted-gray hover:text-red-400 transition-colors cursor-pointer" title="Delete">
+            <button onclick={() => deleteCat(cat)} disabled={cat.menu_items_count > 0} class="p-1.5 rounded-lg hover:bg-red-500/10 transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed {cat.menu_items_count > 0 ? 'text-muted-gray' : 'text-muted-gray hover:text-red-400'}" title={cat.menu_items_count > 0 ? `Cannot delete: ${cat.menu_items_count} menu item(s) using this category` : "Delete"}>
               <Trash2 size={14} />
             </button>
           </div>

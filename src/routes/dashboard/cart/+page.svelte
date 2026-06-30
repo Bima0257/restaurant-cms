@@ -104,7 +104,7 @@
         <span>Total</span>
         <span>${total.toFixed(2)}</span>
       </div>
-      <button onclick={() => goto("/checkout")} class="w-full bg-flame-orange hover:bg-flame-hover text-ivory-white py-3 rounded-full font-bold transition-all cursor-pointer">
+      <button onclick={() => goto("/dashboard/checkout")} class="w-full bg-flame-orange hover:bg-flame-hover text-ivory-white py-3 rounded-full font-bold transition-all cursor-pointer">
         Proceed to Checkout
       </button>
     </div>

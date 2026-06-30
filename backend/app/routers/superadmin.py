@@ -266,12 +266,7 @@ def backup_database(
             log_activity(audit_db, current_user, "Backup Database", module="Database", description=f"Created backup: {filename}", ip_address=ip, user_agent=ua)
         finally:
             audit_db.close()
-        return FileResponse(
-            path=filepath,
-            filename=filename,
-            media_type="application/sql",
-            headers={"Content-Disposition": f'attachment; filename="{filename}"'},
-        )
+        return {"message": "Backup created successfully.", "filename": filename}
     except RuntimeError as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

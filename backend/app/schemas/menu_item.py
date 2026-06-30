@@ -34,6 +34,7 @@ class MenuItemOut(BaseModel):
     image_url: Optional[str] = None
     is_available: bool
     category_name: Optional[str] = None
+    category_slug: str = ""
     created_at: datetime
     updated_at: datetime
 

@@ -37,26 +37,30 @@ class ReportPDF(FPDF):
             self.cell(100, 10, txt, align="C")
 
     def report_title(self, title: str, subtitle: str = ""):
-        self.set_font("Helvetica", "B", 18)
+        self.set_font("Helvetica", "B", 16)
         self.set_text_color(50, 50, 50)
-        self.cell(0, 12, title, align="C", new_x="LMARGIN", new_y="NEXT")
+        self.cell(0, 9, title, align="L", new_x="LMARGIN", new_y="NEXT")
         if subtitle:
-            self.set_font("Helvetica", "", 10)
+            self.set_font("Helvetica", "", 9)
             self.set_text_color(120, 120, 120)
-            self.cell(0, 8, subtitle, align="C", new_x="LMARGIN", new_y="NEXT")
-        self.ln(6)
+            self.cell(0, 6, subtitle, align="L", new_x="LMARGIN", new_y="NEXT")
+        self.set_draw_color(200, 200, 200)
+        self.line(self.l_margin, self.get_y(), self.w - self.r_margin, self.get_y())
+        self.ln(1.5)
 
     def table_header(self, cols: list[str], widths: list[int]):
         self.set_font("Helvetica", "B", 9)
         self.set_fill_color(220, 100, 10)
         self.set_text_color(255, 255, 255)
         for i, col in enumerate(cols):
-            self.cell(widths[i], 8, col, border=1, fill=True, align="C")
+            self.cell(widths[i], 7, col, border=1, fill=True, align="C")
         self.ln()
 
-    def table_row(self, cols: list[str], widths: list[int], align: list[str] | None = None):
+    def table_row(self, cols: list[str], widths: list[int], align: list[str] | None = None, fill: bool = False):
         self.set_font("Helvetica", "", 8)
         self.set_text_color(40, 40, 40)
+        if fill:
+            self.set_fill_color(248, 248, 248)
         max_lines = 1
         cell_lines = []
         for i, col in enumerate(cols):
@@ -72,16 +76,24 @@ class ReportPDF(FPDF):
             x = x_start + sum(widths[:i])
             self.set_xy(x, y_start)
             a = (align[i] if align else "L") if len(widths) > 0 else "L"
-            self.multi_cell(widths[i], 5, str(col), border=1, align=a)
+            self.multi_cell(widths[i], 5, str(col), border=1, align=a, fill=fill)
 
         self.set_xy(x_start, y_start + row_h)
 
-    def simple_row(self, cols: list[str], widths: list[int], align: list[str] | None = None):
+    def simple_row(self, cols: list[str], widths: list[int], align: list[str] | None = None, fill: bool = False):
         self.set_font("Helvetica", "", 8)
         self.set_text_color(40, 40, 40)
+        if fill:
+            self.set_fill_color(248, 248, 248)
         for i, col in enumerate(cols):
             a = (align[i] if align else "L") if align else "L"
-            self.cell(widths[i], 7, str(col), border=1, align=a)
+            self.cell(widths[i], 7, str(col), border=1, align=a, fill=fill)
+        self.ln()
+
+    def empty_row(self, widths: list[int], message: str = "No data available"):
+        self.set_font("Helvetica", "", 8)
+        self.set_text_color(140, 140, 140)
+        self.cell(sum(widths), 7, message, border=1, align="C")
         self.ln()
 
 
@@ -97,7 +109,7 @@ def _parse_date(date_str: Optional[str]) -> Optional[date]:
 def _add_logo(pdf: ReportPDF):
     import os
     if os.path.exists(LOGO_PATH):
-        pdf.image(LOGO_PATH, x=10, y=8, w=25)
+        pdf.image(LOGO_PATH, x=pdf.w - pdf.r_margin - 25, y=8, w=25)
 
 
 def generate_sales_report(db: Session, start_date: Optional[str], end_date: Optional[str]) -> bytes:
@@ -131,22 +143,27 @@ def generate_sales_report(db: Session, start_date: Optional[str], end_date: Opti
     subtitle = f"Period: {start_date or ' earliest'} - {end_date or ' today'}"
     pdf.report_title("Sales Report", subtitle)
 
-    pdf.set_font("Helvetica", "", 10)
-    pdf.cell(0, 7, f"Total Revenue: Rp {total_revenue:,.0f}", new_x="LMARGIN", new_y="NEXT")
-    pdf.cell(0, 7, f"Total Orders: {total_orders}", new_x="LMARGIN", new_y="NEXT")
-    pdf.ln(4)
+    if total_orders > 0:
+        pdf.set_font("Helvetica", "", 10)
+        pdf.cell(0, 7, f"Total Revenue: Rp {total_revenue:,.0f}", new_x="LMARGIN", new_y="NEXT")
+        pdf.cell(0, 7, f"Total Orders: {total_orders}", new_x="LMARGIN", new_y="NEXT")
+        pdf.ln(2)
 
     widths = [40, 40, 60, 40]
     pdf.table_header(["Date", "Orders", "Revenue", "Avg/Order"], widths)
 
-    for r in rows:
-        day_str = r.day.strftime("%d %b %Y") if r.day else "-"
-        avg = float(r.revenue or 0) / r.order_count if r.order_count else 0
-        pdf.simple_row(
-            [day_str, str(r.order_count), f"Rp {float(r.revenue or 0):,.0f}", f"Rp {avg:,.0f}"],
-            widths,
-            align=["L", "C", "R", "R"],
-        )
+    if not rows:
+        pdf.empty_row(widths)
+    else:
+        for i, r in enumerate(rows):
+            day_str = r.day.strftime("%d %b %Y") if r.day else "-"
+            avg = float(r.revenue or 0) / r.order_count if r.order_count else 0
+            pdf.simple_row(
+                [day_str, str(r.order_count), f"Rp {float(r.revenue or 0):,.0f}", f"Rp {avg:,.0f}"],
+                widths,
+                align=["L", "C", "R", "R"],
+                fill=i % 2 == 0,
+            )
 
     return pdf.output()
 
@@ -179,20 +196,24 @@ def generate_orders_report(db: Session, start_date: Optional[str], end_date: Opt
     widths = [22, 30, 50, 24, 30, 34]
     pdf.table_header(["#", "Date", "Customer", "Status", "Payment", "Total"], widths)
 
-    for o in orders:
-        customer_name = o.user.full_name if o.user else "-"
-        pdf.simple_row(
-            [
-                o.order_number or str(o.id),
-                o.created_at.strftime("%d/%m/%Y") if o.created_at else "-",
-                customer_name[:20],
-                o.status.capitalize(),
-                o.payment_status.capitalize(),
-                f"Rp {float(o.total_price):,.0f}",
-            ],
-            widths,
-            align=["L", "L", "L", "C", "C", "R"],
-        )
+    if not orders:
+        pdf.empty_row(widths)
+    else:
+        for i, o in enumerate(orders):
+            customer_name = o.user.full_name if o.user else "-"
+            pdf.simple_row(
+                [
+                    o.order_number or str(o.id),
+                    o.created_at.strftime("%d/%m/%Y") if o.created_at else "-",
+                    customer_name[:20],
+                    o.status.capitalize(),
+                    o.payment_status.capitalize(),
+                    f"Rp {float(o.total_price):,.0f}",
+                ],
+                widths,
+                align=["L", "L", "L", "C", "C", "R"],
+                fill=i % 2 == 0,
+            )
 
     return pdf.output()
 
@@ -212,13 +233,17 @@ def generate_stock_report(db: Session) -> bytes:
     widths = [60, 25, 25, 25, 25, 30]
     pdf.table_header(["Ingredient", "SKU", "Unit", "Stock", "Min Stock", "Status"], widths)
 
-    for ing in ingredients:
-        status = "Low Stock" if float(ing.stock_qty) <= float(ing.min_stock) else "OK"
-        pdf.simple_row(
-            [ing.name, ing.sku or "-", ing.unit, str(float(ing.stock_qty)), str(float(ing.min_stock)), status],
-            widths,
-            align=["L", "L", "C", "C", "C", "C"],
-        )
+    if not ingredients:
+        pdf.empty_row(widths)
+    else:
+        for i, ing in enumerate(ingredients):
+            status = "Low Stock" if float(ing.stock_qty) <= float(ing.min_stock) else "OK"
+            pdf.simple_row(
+                [ing.name, ing.sku or "-", ing.unit, str(float(ing.stock_qty)), str(float(ing.min_stock)), status],
+                widths,
+                align=["L", "L", "C", "C", "C", "C"],
+                fill=i % 2 == 0,
+            )
 
     return pdf.output()
 
@@ -249,19 +274,23 @@ def generate_usage_report(db: Session, start_date: Optional[str], end_date: Opti
     widths = [50, 25, 25, 30, 50]
     pdf.table_header(["Ingredient", "Qty", "Unit", "Reference", "Date"], widths)
 
-    for t in txns:
-        ing_name = t.ingredient.name if t.ingredient else "-"
-        pdf.simple_row(
-            [
-                ing_name[:25],
-                str(float(t.qty)),
-                t.ingredient.unit if t.ingredient else "-",
-                t.reference_type or "-",
-                t.created_at.strftime("%d/%m/%Y") if t.created_at else "-",
-            ],
-            widths,
-            align=["L", "C", "C", "L", "L"],
-        )
+    if not txns:
+        pdf.empty_row(widths)
+    else:
+        for i, t in enumerate(txns):
+            ing_name = t.ingredient.name if t.ingredient else "-"
+            pdf.simple_row(
+                [
+                    ing_name[:25],
+                    str(float(t.qty)),
+                    t.ingredient.unit if t.ingredient else "-",
+                    t.reference_type or "-",
+                    t.created_at.strftime("%d/%m/%Y") if t.created_at else "-",
+                ],
+                widths,
+                align=["L", "C", "C", "L", "L"],
+                fill=i % 2 == 0,
+            )
 
     return pdf.output()
 
@@ -303,19 +332,23 @@ def generate_best_menu_report(db: Session, start_date: Optional[str], end_date: 
     widths = [10, 70, 30, 30, 50]
     pdf.table_header(["#", "Menu Item", "Qty Sold", "Revenue", "Avg Price/Item"], widths)
 
-    for i, r in enumerate(rows, 1):
-        avg_price = float(r.total_revenue or 0) / r.total_qty if r.total_qty else 0
-        pdf.simple_row(
-            [
-                str(i),
-                r.name[:35],
-                str(r.total_qty),
-                f"Rp {float(r.total_revenue or 0):,.0f}",
-                f"Rp {avg_price:,.0f}",
-            ],
-            widths,
-            align=["C", "L", "C", "R", "R"],
-        )
+    if not rows:
+        pdf.empty_row(widths)
+    else:
+        for idx, r in enumerate(rows):
+            avg_price = float(r.total_revenue or 0) / r.total_qty if r.total_qty else 0
+            pdf.simple_row(
+                [
+                    str(idx + 1),
+                    r.name[:35],
+                    str(r.total_qty),
+                    f"Rp {float(r.total_revenue or 0):,.0f}",
+                    f"Rp {avg_price:,.0f}",
+                ],
+                widths,
+                align=["C", "L", "C", "R", "R"],
+                fill=idx % 2 == 0,
+            )
 
     return pdf.output()
 
@@ -346,19 +379,23 @@ def generate_activity_report(db: Session, start_date: Optional[str], end_date: O
     widths = [25, 45, 25, 25, 60]
     pdf.table_header(["Date", "User", "Type", "Ingredient", "Notes"], widths)
 
-    for t in txns:
-        user_name = t.created_by_user.full_name if t.created_by_user else "-"
-        ing_name = t.ingredient.name if t.ingredient else "-"
-        pdf.simple_row(
-            [
-                t.created_at.strftime("%d/%m/%Y") if t.created_at else "-",
-                user_name[:22],
-                t.type,
-                ing_name[:22],
-                (t.notes or "-")[:30],
-            ],
-            widths,
-            align=["L", "L", "C", "L", "L"],
-        )
+    if not txns:
+        pdf.empty_row(widths)
+    else:
+        for i, t in enumerate(txns):
+            user_name = t.created_by_user.full_name if t.created_by_user else "-"
+            ing_name = t.ingredient.name if t.ingredient else "-"
+            pdf.simple_row(
+                [
+                    t.created_at.strftime("%d/%m/%Y") if t.created_at else "-",
+                    user_name[:22],
+                    t.type,
+                    ing_name[:22],
+                    (t.notes or "-")[:30],
+                ],
+                widths,
+                align=["L", "L", "C", "L", "L"],
+                fill=i % 2 == 0,
+            )
 
     return pdf.output()

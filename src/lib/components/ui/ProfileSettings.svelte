@@ -6,6 +6,7 @@
   import { api } from "$lib/api";
   import { auth } from "$lib/stores/auth";
   import { get } from "svelte/store";
+  import { validatePasswordPolicy } from "$lib/utils/password";
 
   let user = $derived(get(auth));
 
@@ -18,6 +19,15 @@
   let newPassword = $state("");
   let confirmPassword = $state("");
   let changingPassword = $state(false);
+  let passwordErrors = $state<string[]>([]);
+
+  function onNewPasswordInput() {
+    if (newPassword) {
+      passwordErrors = validatePasswordPolicy(newPassword, email);
+    } else {
+      passwordErrors = [];
+    }
+  }
 
   onMount(async () => {
     if (!get(auth)) {
@@ -47,8 +57,9 @@
       toast.error("Passwords do not match");
       return;
     }
-    if (newPassword.length < 6) {
-      toast.error("Password must be at least 6 characters");
+    const policyErrors = validatePasswordPolicy(newPassword, email);
+    if (policyErrors.length > 0) {
+      toast.error("Password does not meet requirements: " + policyErrors.join(", "));
       return;
     }
     changingPassword = true;
@@ -58,6 +69,7 @@
       currentPassword = "";
       newPassword = "";
       confirmPassword = "";
+      passwordErrors = [];
     } catch (err: any) {
       toast.error(err.message || "Failed to change password");
     } finally {
@@ -137,9 +149,19 @@
           <input
             type="password"
             bind:value={newPassword}
+            oninput={onNewPasswordInput}
             class="w-full bg-surface-charcoal border border-deep-border rounded-xl pl-11 pr-4 py-3 text-sm text-ivory-white placeholder:text-muted-gray focus:border-flame-orange focus:ring-0 outline-none"
           />
         </div>
+        {#if passwordErrors.length > 0}
+          <ul class="mt-1 space-y-0.5">
+            {#each passwordErrors as err}
+              <li class="text-red-400 text-xs">- {err}</li>
+            {/each}
+          </ul>
+        {:else if newPassword.length >= 8}
+          <p class="text-green-400 text-xs mt-1">Password looks good</p>
+        {/if}
       </div>
       <div>
         <label class="text-sm text-muted-gray block mb-1">Confirm New Password</label>

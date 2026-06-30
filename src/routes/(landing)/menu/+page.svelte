@@ -1,7 +1,11 @@
 <script lang="ts">
   import { onMount } from "svelte";
+  import { goto } from "$app/navigation";
   import { Plus, Search } from "@lucide/svelte";
+  import { toast } from "svelte-sonner";
   import { api } from "$lib/api";
+  import { auth } from "$lib/stores/auth";
+  import { get } from "svelte/store";
 
   let categories = $state<any[]>([]);
   let menuItems = $state<any[]>([]);
@@ -16,6 +20,19 @@
       return matchesCategory && matchesSearch;
     })
   );
+
+  async function addToCart(item: any) {
+    if (!get(auth)) {
+      goto("/auth/login");
+      return;
+    }
+    try {
+      await api.addToCart({ menu_item_id: item.id, qty: 1 });
+      toast.success(`${item.name} added to cart`);
+    } catch (err: any) {
+      toast.error(err.message);
+    }
+  }
 
   onMount(async () => {
     try {
@@ -111,7 +128,7 @@
           <p class="text-xs text-muted-gray mb-4 line-clamp-2">{item.description || ""}</p>
           <div class="flex items-center justify-between">
             <span class="font-label-price text-label-price text-ivory-white">${Number(item.price).toFixed(2)}</span>
-            <button class="w-10 h-10 bg-surface-charcoal border border-deep-border rounded-full flex items-center justify-center text-flame-orange hover:bg-flame-orange hover:text-white transition-all duration-300 cursor-pointer">
+            <button onclick={() => addToCart(item)} class="w-10 h-10 bg-surface-charcoal border border-deep-border rounded-full flex items-center justify-center text-flame-orange hover:bg-flame-orange hover:text-white transition-all duration-300 cursor-pointer">
               <Plus size={18} />
             </button>
           </div>

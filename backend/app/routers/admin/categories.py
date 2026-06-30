@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, Request, status
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 
 from app.database import get_db
 from app.dependencies import require_admin
@@ -16,7 +16,12 @@ def list_categories(
     current_user: User = Depends(require_admin),
     db: Session = Depends(get_db),
 ):
-    return db.query(Category).order_by(Category.sort_order).all()
+    categories = db.query(Category).options(
+        selectinload(Category.menu_items)
+    ).order_by(Category.sort_order).all()
+    for cat in categories:
+        cat.menu_items_count = len(cat.menu_items)
+    return categories
 
 
 @router.get("/{category_id}", response_model=CategoryOut)
