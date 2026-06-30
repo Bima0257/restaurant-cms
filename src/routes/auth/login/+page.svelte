@@ -37,9 +37,7 @@
 
   function resetReCaptcha() {
     recaptchaToken = "";
-    if (recaptchaWidgetId && (window as any).grecaptcha) {
-      (window as any).grecaptcha.reset(recaptchaWidgetId);
-    }
+    renderReCaptcha();
   }
 
   onMount(() => {

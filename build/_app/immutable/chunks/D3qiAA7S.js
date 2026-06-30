@@ -1,0 +1,1 @@
+import{o as e,s as t}from"./oacvsz_z.js";import"./xihTtKlq.js";import{t as n}from"./zM0wK1K3.js";var r=new Set([`$$slots`,`$$events`,`$$legacy`]);function i(i,a){let o=e(a,r),s=[[`rect`,{width:`20`,height:`14`,x:`2`,y:`5`,rx:`2`}],[`line`,{x1:`2`,x2:`22`,y1:`10`,y2:`10`}]];n(i,t({name:`credit-card`},()=>o,{get iconNode(){return s}}))}export{i as t};

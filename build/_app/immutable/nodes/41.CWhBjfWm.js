@@ -1,0 +1,1 @@
+import{ot as e,r as t,st as n}from"../chunks/oacvsz_z.js";import{t as r}from"../chunks/DPdn6owq.js";import"../chunks/xihTtKlq.js";import"../chunks/SBf_E4np.js";function i(i,a){n(a,!0),t(()=>{r(`/superadmin/accounts`)}),e()}export{i as component};
