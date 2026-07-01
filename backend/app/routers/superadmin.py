@@ -340,6 +340,45 @@ def restore_database(
         )
 
 
+@router.put("/accounts/{user_id}/toggle-status")
+def toggle_account_status(
+    user_id: int,
+    request: Request,
+    current_user: User = Depends(require_superadmin),
+    db: Session = Depends(get_db),
+):
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    if user.role not in ("admin", "staff"):
+        raise HTTPException(
+            status_code=400,
+            detail="Can only toggle status for admin or staff accounts",
+        )
+    if user.id == current_user.id:
+        raise HTTPException(
+            status_code=400,
+            detail="Cannot toggle your own account status",
+        )
+
+    user.is_active = not user.is_active
+    db.commit()
+
+    ip, ua = get_client_info(request)
+    new_status = "activated" if user.is_active else "deactivated"
+    log_activity(
+        db, current_user, "Toggle Account Status", module="User Management",
+        description=f"{new_status} account: {user.email} ({user.role})",
+        ip_address=ip, user_agent=ua,
+    )
+
+    return {
+        "message": f"Account {new_status} successfully",
+        "user_id": user.id,
+        "is_active": user.is_active,
+    }
+
+
 @router.delete("/backup/{filename}")
 def delete_backup_file(
     filename: str,

@@ -52,8 +52,8 @@
   }
 </script>
 
-<div class="p-6 max-w-4xl mx-auto">
-  <div class="mb-6">
+<div class="max-w-4xl">
+  <div class="mb-8">
     <h1 class="font-headline-h3 text-headline-h3 text-ivory-white">Reports</h1>
     <p class="text-muted-gray text-sm mt-1">Generate and preview PDF reports</p>
   </div>
@@ -124,7 +124,8 @@
     onclick={() => closePreview()}
     onkeydown={(e) => { if (e.key === "Escape") closePreview(); }}
     role="dialog"
-    tabindex={-1}
+    tabindex="0"
+    aria-label="Report preview"
   >
     <div
       class="bg-surface-card w-full h-full flex flex-col border border-deep-border overflow-hidden"

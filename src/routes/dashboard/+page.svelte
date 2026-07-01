@@ -2,6 +2,7 @@
   import { onMount } from "svelte";
   import { goto } from "$app/navigation";
   import { Plus, History, ShoppingCart, CookingPot, Stars, ReceiptText, ArrowRight } from "@lucide/svelte";
+  import { toast } from "svelte-sonner";
   import { api } from "$lib/api";
   import { auth } from "$lib/stores/auth";
   import { get } from "svelte/store";
@@ -46,6 +47,20 @@
     };
     return colors[status] || "text-muted-gray";
   }
+
+  async function addToCart(item: any) {
+    try {
+      await api.addToCart({ menu_item_id: item.id, qty: 1 });
+      toast.success(`${item.name} added to cart`);
+    } catch (err: any) {
+      toast.error(err.message);
+    }
+  }
+
+  function copyPromoCode() {
+    navigator.clipboard.writeText("WP-TRUFFLE-25");
+    toast.success("Promo code copied!");
+  }
 </script>
 
 {#if loading}
@@ -75,7 +90,7 @@
             <h3 class="font-headline-h3 text-headline-h3 text-ivory-white">{lastOrder.order_number}</h3>
             <p class="text-sm text-muted-gray">Last ordered {new Date(lastOrder.created_at).toLocaleDateString()} • ${Number(lastOrder.total_price).toFixed(2)}</p>
           </div>
-          <button class="w-full bg-flame-orange text-white py-4 rounded-xl font-bold orange-glow flex items-center justify-center gap-2 hover:bg-flame-hover transition-colors cursor-pointer">
+          <button onclick={() => goto("/dashboard/menu")} class="w-full bg-flame-orange text-white py-4 rounded-xl font-bold orange-glow flex items-center justify-center gap-2 hover:bg-flame-hover transition-colors cursor-pointer">
             <ShoppingCart size={18} />
             Reorder Now
           </button>
@@ -111,7 +126,7 @@
           </div>
         </div>
         <div class="flex gap-4">
-          <button class="px-6 py-3 border border-deep-border rounded-xl text-sm font-bold text-ivory-white hover:bg-surface-card transition-colors cursor-pointer">Track Live</button>
+          <button onclick={() => goto("/dashboard/orders")} class="px-6 py-3 border border-deep-border rounded-xl text-sm font-bold text-ivory-white hover:bg-surface-card transition-colors cursor-pointer">Track Live</button>
         </div>
       </div>
     </section>
@@ -153,7 +168,7 @@
           <ReceiptText size={20} class="text-flame-orange" />
           <span class="font-label-caps text-xs tracking-widest text-ivory-white">WP-TRUFFLE-25</span>
         </div>
-        <button class="text-flame-orange font-bold text-xs uppercase tracking-tighter hover:underline cursor-pointer">Copy Code</button>
+        <button onclick={copyPromoCode} class="text-flame-orange font-bold text-xs uppercase tracking-tighter hover:underline cursor-pointer">Copy Code</button>
       </div>
     </div>
   </section>
@@ -186,7 +201,7 @@
           <p class="text-xs text-muted-gray mb-4 line-clamp-1">{item.description || ""}</p>
           <div class="flex items-center justify-between">
             <span class="font-label-price text-label-price text-ivory-white">${Number(item.price).toFixed(2)}</span>
-            <button class="w-10 h-10 bg-surface-charcoal border border-deep-border rounded-full flex items-center justify-center text-flame-orange hover:bg-flame-orange hover:text-white transition-all duration-300 cursor-pointer">
+            <button onclick={() => addToCart(item)} class="w-10 h-10 bg-surface-charcoal border border-deep-border rounded-full flex items-center justify-center text-flame-orange hover:bg-flame-orange hover:text-white transition-all duration-300 cursor-pointer">
               <Plus size={18} />
             </button>
           </div>
@@ -208,11 +223,11 @@
     <div class="bg-surface-charcoal border border-deep-border rounded-[2rem] overflow-hidden">
       <div class="p-8 border-b border-deep-border flex items-center justify-between">
         <h3 class="font-headline-h3 text-headline-h3 text-ivory-white">Recent Culinary Journeys</h3>
-        <button class="text-sm text-muted-gray hover:text-flame-orange transition-colors cursor-pointer">Download History</button>
+        <button onclick={() => goto("/dashboard/orders")} class="text-sm text-muted-gray hover:text-flame-orange transition-colors cursor-pointer">Download History</button>
       </div>
       <div class="divide-y divide-deep-border">
         {#each recentOrders as order}
-          <a href="/account/orders/{order.id}" class="p-6 flex items-center justify-between hover:bg-surface-card transition-colors block">
+          <a href="/dashboard/orders/{order.id}" class="p-6 flex items-center justify-between hover:bg-surface-card transition-colors block">
             <div class="flex items-center gap-4">
               <div class="w-12 h-12 rounded-xl bg-surface flex items-center justify-center">
                 <span class="text-muted-gray font-bold text-lg">#</span>

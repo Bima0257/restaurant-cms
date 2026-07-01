@@ -6,7 +6,7 @@
 
   let alerts = $state<any[]>([]);
   let loading = $state(true);
-  let resolving = $state<Set<number>>(new Set());
+  let resolvingIds = $state<number[]>([]);
 
   onMount(async () => {
     try {
@@ -19,7 +19,7 @@
   });
 
   async function handleResolve(alertId: number) {
-    resolving.add(alertId);
+    resolvingIds = [...resolvingIds, alertId];
     try {
       await api.staffResolveAlert(alertId);
       alerts = alerts.filter((a) => a.id !== alertId);
@@ -27,7 +27,7 @@
     } catch (err: any) {
       toast.error(err.message || "Failed to resolve alert");
     } finally {
-      resolving.delete(alertId);
+      resolvingIds = resolvingIds.filter((id) => id !== alertId);
     }
   }
 </script>
@@ -66,11 +66,11 @@
             </span>
             <button
               onclick={() => handleResolve(alert.id)}
-              disabled={resolving.has(alert.id)}
+              disabled={resolvingIds.includes(alert.id)}
               class="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium text-green-400 hover:bg-green-500/10 border border-green-500/30 hover:border-green-400/50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer"
             >
               <CheckCircle size={14} />
-              {resolving.has(alert.id) ? "Resolving..." : "Resolve"}
+              {resolvingIds.includes(alert.id) ? "Resolving..." : "Resolve"}
             </button>
           </div>
         </div>

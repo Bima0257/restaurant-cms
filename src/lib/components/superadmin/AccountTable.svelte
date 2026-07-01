@@ -10,12 +10,14 @@
     onUpdate,
     onDelete,
     onResetPassword,
+    onToggleStatus,
   }: {
     apiList: () => Promise<any[]>;
     onCreate: (data: any) => Promise<any>;
     onUpdate: (id: number, data: any, role: string) => Promise<any>;
     onDelete: (id: number, role: string) => Promise<void>;
     onResetPassword: (id: number, password: string) => Promise<any>;
+    onToggleStatus: (id: number) => Promise<{ message: string; user_id: number; is_active: boolean }>;
   } = $props();
 
   let accounts = $state<any[]>([]);
@@ -28,6 +30,7 @@
   let passwordTarget = $state<any>(null);
   let newPassword = $state("");
   let saving = $state(false);
+  let toggling = $state(new Set<number>());
 
   let form = $state({ email: "", password: "", full_name: "", phone: "", role: "admin" });
 
@@ -68,16 +71,6 @@
         .slice(0, 2) || "?"
     );
   }
-
-  const statusColors: Record<string, string> = {
-    true: "bg-green-500/10 text-green-400 border-green-500/20",
-    false: "bg-red-500/10 text-red-400 border-red-500/20",
-  };
-
-  const statusLabels: Record<string, string> = {
-    true: "Active",
-    false: "Inactive",
-  };
 
   const roleColors: Record<string, string> = {
     admin: "bg-purple-500/10 text-purple-400 border-purple-500/20",
@@ -174,6 +167,23 @@
       toast.success("Account deleted successfully");
     } catch (err: any) {
       toast.error(err.message);
+    }
+  }
+
+  async function toggleStatus(account: any) {
+    toggling.add(account.id);
+    toggling = toggling;
+    try {
+      const res = await onToggleStatus(account.id);
+      accounts = accounts.map((a) =>
+        a.id === account.id ? { ...a, is_active: res.is_active } : a
+      );
+      toast.success(`Account ${res.is_active ? "activated" : "deactivated"}`);
+    } catch (err: any) {
+      toast.error(err.message);
+    } finally {
+      toggling.delete(account.id);
+      toggling = toggling;
     }
   }
 
@@ -293,12 +303,25 @@
               </td>
               <td class="py-3 px-4 text-muted-gray text-sm hidden lg:table-cell">{account.phone || "—"}</td>
               <td class="py-3 px-4">
-                <span
-                  class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium border {statusColors[String(account.is_active)]}"
+                <button
+                  onclick={() => toggleStatus(account)}
+                  disabled={toggling.has(account.id)}
+                  class="relative inline-flex items-center shrink-0 h-6 w-11 rounded-full transition-colors cursor-pointer border-0 disabled:opacity-60 {account.is_active ? 'bg-green-500' : 'bg-red-500/30'}"
+                  title="Click to {account.is_active ? 'deactivate' : 'activate'}"
                 >
-                  <span class="w-1.5 h-1.5 rounded-full currentColor"></span>
-                  {statusLabels[String(account.is_active)]}
-                </span>
+                  <span
+                    class="inline-flex items-center justify-center h-5 w-5 rounded-full bg-white shadow-sm transition-transform {account.is_active ? 'translate-x-5' : 'translate-x-0.5'}"
+                  >
+                    {#if toggling.has(account.id)}
+                      <Loader2 size={10} class="animate-spin text-muted-gray" />
+                    {/if}
+                  </span>
+                  <span
+                    class="absolute left-12 text-xs font-medium whitespace-nowrap {account.is_active ? 'text-green-400' : 'text-red-400'}"
+                  >
+                    {account.is_active ? "Active" : "Inactive"}
+                  </span>
+                </button>
               </td>
               <td class="py-3 px-4 text-muted-gray text-xs hidden lg:table-cell" title={formatDateFull(account.last_login)}>
                 {formatDate(account.last_login)}

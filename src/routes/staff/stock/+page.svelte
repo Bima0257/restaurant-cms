@@ -70,7 +70,9 @@
   }
 
   async function handleSubmit() {
-    if (!selectedIngredient || transactionQty <= 0) return;
+    if (!selectedIngredient) return;
+    if (transactionMode === "in" && transactionQty <= 0) return;
+    if (transactionMode === "adjust" && transactionQty === 0) return;
     submitting = true;
     try {
       if (transactionMode === "in") {
@@ -149,7 +151,8 @@
     onclick={() => closeModal()}
     onkeydown={(e) => { if (e.key === "Escape") closeModal(); }}
     role="dialog"
-    tabindex={-1}
+    tabindex="0"
+    aria-label="Stock transaction dialog"
   >
     <div
       class="bg-surface-card rounded-3xl p-6 w-full max-w-md border border-deep-border"
@@ -178,7 +181,6 @@
           <input
             type="number"
             step="0.01"
-            min="0"
             bind:value={transactionQty}
             class="w-full bg-surface-charcoal border border-deep-border rounded-xl px-4 py-3 text-sm text-ivory-white focus:border-flame-orange focus:ring-0 outline-none"
             placeholder="0.00"
@@ -207,7 +209,7 @@
         </button>
         <button
           onclick={handleSubmit}
-          disabled={transactionQty <= 0 || submitting}
+          disabled={submitting || (transactionMode === "in" && transactionQty <= 0) || (transactionMode === "adjust" && transactionQty === 0)}
           class="flex-1 px-4 py-3 rounded-xl bg-flame-orange text-ivory-white font-bold hover:bg-flame-hover disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer"
         >
           {submitting ? "Processing..." : transactionMode === "in" ? "Stock In" : "Adjust"}

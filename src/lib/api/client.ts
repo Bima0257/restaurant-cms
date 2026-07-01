@@ -57,12 +57,12 @@ async function request<T>(
     if (!isRefreshing) {
       isRefreshing = true;
       const newToken = await refreshTokenRequest();
-      isRefreshing = false;
 
       if (newToken) {
         headers["Authorization"] = `Bearer ${newToken}`;
         refreshQueue.forEach((q) => q.resolve(newToken));
         refreshQueue = [];
+        isRefreshing = false;
 
         res = await fetchWithTimeout(`${API_BASE}${endpoint}`, {
           ...options,
@@ -71,6 +71,7 @@ async function request<T>(
       } else {
         refreshQueue.forEach((q) => q.reject(new Error("Refresh failed")));
         refreshQueue = [];
+        isRefreshing = false;
         auth.logout();
         if (typeof window !== "undefined") {
           window.location.href = "/auth/login";
@@ -278,6 +279,11 @@ export const api = {
     request<any>(`/superadmin/reset-password/${userId}?new_password=${newPassword}`, {
       method: "PUT",
     }),
+  superadminToggleAccountStatus: (userId: number) =>
+    request<{ message: string; user_id: number; is_active: boolean }>(
+      `/superadmin/accounts/${userId}/toggle-status`,
+      { method: "PUT" }
+    ),
 
   // Reviews
   createReview: (data: { menu_item_id: number; rating: number; comment?: string }) =>

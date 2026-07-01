@@ -1,8 +1,11 @@
 <script lang="ts">
   import { onMount } from "svelte";
+  import { goto } from "$app/navigation";
   import { Loader2 } from "@lucide/svelte";
   import { toast } from "svelte-sonner";
   import { api } from "$lib/api";
+  import { auth } from "$lib/stores/auth";
+  import { get } from "svelte/store";
   import StatCard from "$lib/components/admin/StatCard.svelte";
   import {
     UtensilsCrossed,
@@ -15,9 +18,12 @@
   let loading = $state(true);
   let menuItems: any[] = $state([]);
   let orders: any[] = $state([]);
-  let users: any[] = $state([]);
 
   onMount(async () => {
+    if (!get(auth)) {
+      goto("/auth/login");
+      return;
+    }
     try {
       const [menuRes, ordersRes] = await Promise.all([
         api.adminListMenu().catch(() => []),

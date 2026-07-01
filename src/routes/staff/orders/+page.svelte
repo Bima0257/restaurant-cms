@@ -54,7 +54,7 @@
 </div>
 
 <div class="flex gap-2 mb-6 flex-wrap">
-  {#each ["", "pending", "confirmed", "preparing", "ready", "completed"] as s}
+  {#each ["", "pending", "confirmed", "preparing", "ready", "delivered", "completed", "cancelled"] as s}
     <button
       onclick={() => { filterStatus = s; }}
       class={filterStatus === s
@@ -85,8 +85,10 @@
       <div class="flex items-center justify-end gap-2">
         {#if row.status === "pending"}
           <button onclick={() => updateStatus(row.id, "confirmed")} class="text-blue-400 hover:text-blue-300 text-xs font-medium cursor-pointer">Confirm</button>
+          <button onclick={() => updateStatus(row.id, "cancelled")} class="text-red-400 hover:text-red-300 text-xs font-medium cursor-pointer">Cancel</button>
         {:else if row.status === "confirmed"}
           <button onclick={() => updateStatus(row.id, "preparing")} class="text-flame-orange hover:text-flame-hover text-xs font-medium cursor-pointer">Preparing</button>
+          <button onclick={() => updateStatus(row.id, "cancelled")} class="text-red-400 hover:text-red-300 text-xs font-medium cursor-pointer">Cancel</button>
         {:else if row.status === "preparing"}
           <button onclick={() => updateStatus(row.id, "ready")} class="text-green-400 hover:text-green-300 text-xs font-medium cursor-pointer">Ready</button>
         {:else if row.status === "ready"}

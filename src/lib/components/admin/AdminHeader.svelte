@@ -4,8 +4,9 @@
   import { toast } from "svelte-sonner";
   import { auth } from "$lib/stores/auth";
   import { api } from "$lib/api";
+  import { get } from "svelte/store";
 
-  const user = $derived($auth);
+  const user = $derived(get(auth));
 
   async function handleLogout() {
     try {

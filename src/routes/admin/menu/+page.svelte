@@ -52,7 +52,6 @@
 
   function openCreate() {
     resetForm();
-    form.category_id = categories[0]?.id || 0;
     showModal = true;
   }
 

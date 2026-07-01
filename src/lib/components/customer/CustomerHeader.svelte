@@ -36,7 +36,7 @@
     </div>
   </div>
   <div class="flex items-center gap-6 ml-8">
-    <button class="relative text-muted-gray hover:text-flame-orange transition-colors cursor-pointer">
+    <button onclick={() => toast.info("No new notifications")} class="relative text-muted-gray hover:text-flame-orange transition-colors cursor-pointer">
       <Bell size={22} />
       <span class="absolute top-0 right-0 w-2 h-2 bg-flame-orange rounded-full border-2 border-surface"></span>
     </button>

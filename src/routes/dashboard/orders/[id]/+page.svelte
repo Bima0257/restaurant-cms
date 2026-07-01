@@ -3,6 +3,8 @@
   import { goto } from "$app/navigation";
   import { page } from "$app/stores";
   import { ArrowLeft } from "@lucide/svelte";
+  import { toast } from "svelte-sonner";
+  import { confirmAction } from "$lib/utils/confirm";
   import { api } from "$lib/api";
   import { auth } from "$lib/stores/auth";
   import { get } from "svelte/store";
@@ -32,17 +34,28 @@
     }
     try {
       order = await api.getMyOrder(Number(id));
-    } catch { /* empty */ }
+    } catch (err: any) {
+      toast.error(err.message || "Failed to load order");
+    }
     finally {
       loading = false;
     }
   });
 
   async function cancelOrder() {
-    if (!confirm("Are you sure you want to cancel this order?")) return;
+    const confirmed = await confirmAction({
+      title: "Cancel Order",
+      message: "Are you sure you want to cancel this order?",
+      confirmLabel: "Cancel Order",
+      variant: "danger",
+    });
+    if (!confirmed) return;
     try {
       order = await api.cancelOrder(Number(id));
-    } catch { /* empty */ }
+      toast.success("Order cancelled successfully");
+    } catch (err: any) {
+      toast.error(err.message || "Failed to cancel order");
+    }
   }
 </script>
 

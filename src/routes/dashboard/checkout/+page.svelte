@@ -13,7 +13,7 @@
   let notes = $state("");
   let loading = $state(false);
 
-   onMount(async () => {
+  onMount(async () => {
     if (!get(auth)) {
       goto("/auth/login");
       return;

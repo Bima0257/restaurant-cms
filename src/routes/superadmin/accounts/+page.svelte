@@ -21,4 +21,5 @@
       : api.superadminDeleteStaff(id)
   }
   onResetPassword={api.superadminResetPassword}
+  onToggleStatus={api.superadminToggleAccountStatus}
 />

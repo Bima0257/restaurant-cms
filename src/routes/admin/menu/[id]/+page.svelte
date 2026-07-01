@@ -45,7 +45,8 @@
     }
   });
 
-  async function save() {
+  async function save(e: Event) {
+    e.preventDefault();
     saving = true;
     try {
       await api.adminUpdateMenuItem(id, {
@@ -81,7 +82,7 @@
   </div>
 {:else}
   <div class="bg-surface-card rounded-2xl border border-deep-border p-6 max-w-2xl">
-    <form class="flex flex-col gap-4" onsubmit={(e) => { e.preventDefault(); save(); }}>
+    <form class="flex flex-col gap-4" onsubmit={save}>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label for="edit-name" class="block text-sm text-muted-gray mb-1">Name</label>
