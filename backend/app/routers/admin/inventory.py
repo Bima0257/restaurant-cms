@@ -144,7 +144,7 @@ def stock_in(
         db.commit()
         db.refresh(tx)
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail="Unable to process stock transaction. Please try again.")
 
     ip, ua = get_client_info(request)
     ing_name = tx.ingredient.name if tx.ingredient else "-"
@@ -176,7 +176,7 @@ def adjust_stock(
         db.commit()
         db.refresh(tx)
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail="Unable to process stock transaction. Please try again.")
 
     ip, ua = get_client_info(request)
     ing_name = tx.ingredient.name if tx.ingredient else "-"

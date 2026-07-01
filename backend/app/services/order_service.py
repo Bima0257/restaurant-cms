@@ -28,7 +28,7 @@ def process_checkout(
         .all()
     )
     if not cart_items:
-        raise ValueError("Cart is empty")
+        raise ValueError("Unable to complete checkout. Your cart is empty.")
 
     recipe_requirements = []
     order_items_data = []
@@ -41,7 +41,7 @@ def process_checkout(
             .first()
         )
         if not menu_item or not menu_item.is_available:
-            raise ValueError(f"Menu item {cart_item.menu_item_id} is not available")
+            raise ValueError("One or more items in your cart are not available.")
 
         recipes = (
             db.query(Recipe)
@@ -72,11 +72,8 @@ def process_checkout(
     if recipe_requirements:
         all_available, details = check_menu_stock(db, recipe_requirements)
         if not all_available:
-            unavailable = [
-                d for d in details if not d["available"]
-            ]
             raise ValueError(
-                f"Insufficient stock for ingredients: {unavailable}"
+                "Unable to process checkout. Some menu items are out of stock."
             )
 
     order_number = generate_order_number(db)

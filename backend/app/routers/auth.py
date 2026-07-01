@@ -46,7 +46,7 @@ def register(data: UserRegister, request: Request, db: Session = Depends(get_db)
     if db.query(User).filter(User.email == data.email).first():
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Email already registered",
+            detail="Registration failed. Please check your details and try again.",
         )
 
     user = User(
@@ -107,17 +107,11 @@ async def login(data: UserLogin, request: Request, db: Session = Depends(get_db)
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid email or password",
         )
-    if not user.is_active:
+    if not user.is_active or (user.role == "customer" and not user.is_verified):
         record_login_attempt(db, data.email, success=False, ip_address=client_ip)
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Account is disabled",
-        )
-    if user.role == "customer" and not user.is_verified:
-        record_login_attempt(db, data.email, success=False, ip_address=client_ip)
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Email not verified. Please check your email for the OTP code.",
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid email or password",
         )
 
     user.last_login = datetime.now(timezone.utc)

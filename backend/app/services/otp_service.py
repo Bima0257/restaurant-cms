@@ -35,8 +35,8 @@ def verify_otp(db: Session, email: str, otp_code: str) -> User:
     user = db.query(User).filter(User.email == email).first()
     if not user:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found",
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid verification request.",
         )
 
     token = (
@@ -52,7 +52,7 @@ def verify_otp(db: Session, email: str, otp_code: str) -> User:
     if not token:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="No OTP found. Please request a new OTP.",
+            detail="Invalid verification request.",
         )
 
     if token.attempts >= settings.OTP_MAX_ATTEMPTS:
@@ -87,14 +87,14 @@ def resend_otp(db: Session, email: str) -> None:
     user = db.query(User).filter(User.email == email).first()
     if not user:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found",
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid request.",
         )
 
     if user.is_verified:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Email is already verified.",
+            detail="Invalid request.",
         )
 
     last_token = (

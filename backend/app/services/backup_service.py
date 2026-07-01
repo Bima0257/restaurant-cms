@@ -1,3 +1,4 @@
+import logging
 import os
 import subprocess
 import time
@@ -6,6 +7,8 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 from app.config import settings
+
+logger = logging.getLogger(__name__)
 
 
 def get_backup_dir() -> Path:
@@ -54,7 +57,8 @@ def create_backup() -> str:
     )
 
     if result.returncode != 0:
-        raise RuntimeError(f"Backup failed: {result.stderr}")
+        logger.error("Backup failed: %s", result.stderr)
+        raise RuntimeError("Backup failed. Check server logs for details.")
 
     filepath.write_text(result.stdout, encoding="utf-8")
     return str(filepath)
@@ -106,4 +110,5 @@ def restore_backup(file_path: str) -> None:
     )
 
     if result.returncode != 0:
-        raise RuntimeError(f"Restore failed: {result.stderr}")
+        logger.error("Restore failed: %s", result.stderr)
+        raise RuntimeError("Restore failed. Check server logs for details.")

@@ -25,7 +25,7 @@
 
   function getDashboardLink() {
     if (!user) return "/auth/login";
-    if (user.role === "superadmin") return "/superadmin/admins";
+    if (user.role === "superadmin") return "/superadmin/accounts";
     if (user.role === "admin") return "/admin";
     if (user.role === "staff") return "/staff/orders";
     return "/dashboard";

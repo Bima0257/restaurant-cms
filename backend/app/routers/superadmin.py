@@ -62,7 +62,7 @@ def create_admin(
     db: Session = Depends(get_db),
 ):
     if db.query(User).filter(User.email == data.email).first():
-        raise HTTPException(status_code=400, detail="Email already registered")
+        raise HTTPException(status_code=400, detail="An account with this email already exists.")
 
     user = User(
         email=data.email,
@@ -146,7 +146,7 @@ def create_staff(
     db: Session = Depends(get_db),
 ):
     if db.query(User).filter(User.email == data.email).first():
-        raise HTTPException(status_code=400, detail="Email already registered")
+        raise HTTPException(status_code=400, detail="An account with this email already exists.")
 
     user = User(
         email=data.email,

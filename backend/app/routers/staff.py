@@ -142,7 +142,7 @@ def staff_stock_in(
         db.commit()
         db.refresh(tx)
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail="Unable to process stock transaction. Please try again.")
 
     result = StockTransactionOut.model_validate(tx)
     if tx.ingredient:
@@ -169,7 +169,7 @@ def staff_adjust_stock(
         db.commit()
         db.refresh(tx)
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail="Unable to process stock transaction. Please try again.")
 
     result = StockTransactionOut.model_validate(tx)
     if tx.ingredient:
